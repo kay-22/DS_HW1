@@ -20,5 +20,5 @@ class Node{
  */
 template  <typename T>
 class AvlTree{
-    Node* root;
+    Node<T>* root;
 };
