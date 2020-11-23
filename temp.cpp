@@ -1,5 +1,6 @@
 #include "avl.h"
 
 int main(){
-    return 1;
+    //AvlTree<int,int> a();
+    return 0;
 }

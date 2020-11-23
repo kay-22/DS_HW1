@@ -10,7 +10,7 @@ set(MTM_FLAGS_RELEASE "${MTM_FLAGS_DEBUG} -DNDEBUG")
 
 set(CMAKE_CXX_FLAGS ${MTM_FLAGS_DEBUG})
 
-add_executable(HW1 avl.h temp.cpp)
+add_executable(HW1 avl.h temp.cpp Exceptions.h Exceptions.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
