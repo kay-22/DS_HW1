@@ -15,12 +15,14 @@ struct Node {
     Data data;
     Node* left;
     Node* right;
+    Node* parent;
 
     int subTreeHight;
 
     // assuming Data and Key has copy ctor
-    explicit Node(Key key, Data data, Node* left = nullptr, Node* right= nullptr, int subTreeHight = 0) 
-        : key(key), data(data), left(left), right(right), subTreeHight(subTreeHight) {}    
+    explicit Node(Key key, Data data, Node* left = nullptr, Node* right= nullptr,
+                  Node* parent=nullptr, int subTreeHight = 0) 
+                : key(key), data(data), left(left), right(right), parent(parent) ,subTreeHight(subTreeHight) {}    
         
 };
 
@@ -81,10 +83,10 @@ Data* AvlTree<Key,Data>::find(const Key& key){
     Node<Key,Data>* lastOnSearch;
     Node<Key,Data>* desired = findNode(key,lastOnSearch);
 
-    //if(desired!=nullptr){
-    //    return &(desired->data);
-    //}
-    //return nullptr;
+    if(desired!=nullptr){
+        return &(desired->data);
+    }
+    return nullptr;
 }
 
 
@@ -94,8 +96,7 @@ bool AvlTree<Key,Data>::insert(const Key& key, const Data& data){
     Node<Key,Data>* lastOnSearch;
     Node<Key,Data>* exists = findNode(key,lastOnSearch);
     if( exists ) return false;
-
-
+    
 
     
 }
