@@ -54,7 +54,8 @@ class AvlTree{
     Node<Key,Data>* findNode(const Key& key, Node<Key,Data>* last);
     // inserts to the AvlTree like BinaryTreeInsert. assuming not-exists.
     Node<Key,Data>* binaryInsert(const Key& key, const Data& data, Node<Key,Data>* last );
-
+    // assures that the balanceFactor of the node is correct by applying "role-over" if neccessary.
+    void assureBalance(Node<Key,Data>* nodeOnTrack);
 
 };
 
@@ -104,6 +105,31 @@ Node<Key,Data>* AvlTree<Key,Data>::binaryInsert(const Key& key, const Data& data
 }
 
 
+//assuming: Key,Data has copy Ctor and operator=
+//assuming: Key,Data has operators: < , > , =
+template  <typename Key,typename Data>
+Node<Key,Data>* AvlTree<Key,Data>::binaryInsert(const Key& key, const Data& data, Node<Key,Data>* last ){
+    Node<Key,Data>* newNode = new Node<Key,Data>(key,data,last);
+    
+    if( last==nullptr ){//meaning an empty tree
+        assert( this->root==nullptr );
+        root = newNode;
+    }
+    else if( key < last->key ){
+        last->left = newNode;
+    }
+    else{ assert( key > last->key );
+        last->right = newNode;
+    }
+    return newNode;
+}
+
+
+template  <typename Key,typename Data>
+void AvlTree<Key,Data>::assureBalance(Node<Key,Data>* nodeOnTrack){
+    //todo
+    return;
+}
 
 //returns null in case of failure
 template<typename Key,typename Data>
@@ -118,24 +144,38 @@ Data* AvlTree<Key,Data>::find(const Key& key){
 }
 
 
+
 //return values: True for "sucssess", False for  "already exists".
 template<typename Key,typename Data>
 bool AvlTree<Key,Data>::insert(const Key& key, const Data& data){
     Node<Key,Data>* lastOnSearch;
     Node<Key,Data>* exists = findNode(key,lastOnSearch);
-    if( exists ) return false;
     
+    if( exists ) return false;
     assert(lastOnSearch);
     Node<Key,Data>* nodeOnTrack = binaryInsert(key,data,lastOnSearch);
+    
+    do{
+        assureBalance(nodeOnTrack);//  <--should also check suc
+        nodeOnTrack = nodeOnTrack->parent;
+    }while ( nodeOnTrack->parent );
 
-    while ( nodeOnTrack->parent ){
-        /* code to fix the balance */
-    }
-    return true;
+    return true;   
 }
 
 
+
+
+//return values: True for "sucssess", False for  "not exists".
 template<typename Key,typename Data>
  bool AvlTree<Key,Data>::remove(const Key& key){
+    Node<Key,Data>* lastOnSearch;
+    Node<Key,Data>* exists = findNode(key,lastOnSearch);
+
+    if( !exists ) return false;
+    assert(lastOnSearch);
+    Node<Key,Data>* nodeOnTrack = binaryRemove(key,data,lastOnSearch);
+    //todo - co,plete the function
+
      return true;
  }
