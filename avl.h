@@ -6,25 +6,27 @@
 
 /* 
     * general description: an auxiliary struct to represent a vertex in an avl tree.
-    left\right that is nullptr means subtree with hight=(-1)
+    * left\right that is nullptr means subtree with hight=(-1)
 
  */
 template <typename Key, typename Data>
 struct Node {
     const Key key;
     Data data;
+    Node* parent;
     Node* left;
     Node* right;
-    Node* parent;
 
+    
     int subTreeHight;
 
     // assuming Data and Key has copy ctor
-    explicit Node(Key key, Data data, Node* left = nullptr, Node* right= nullptr,
-                  Node* parent=nullptr, int subTreeHight = 0) 
+    explicit Node(Key key, Data data, Node* parent=nullptr, Node* left = nullptr, Node* right= nullptr,
+                  int subTreeHight = 0) 
                 : key(key), data(data), left(left), right(right), parent(parent) ,subTreeHight(subTreeHight) {}    
         
 };
+
 
 
 
@@ -34,29 +36,35 @@ struct Node {
  */
 template  <typename Key,typename Data>
 class AvlTree{
-    
-    Node<Key,Data>* root;
-
-    /********* private methods: **********/
-    AvlTree(Node<Key,Data>* root = nullptr) : root(root) {}
-    AvlTree(const AvlTree& other) = delete;
-    
-    // returns the required node or null if failed. last <- last checked node
-    Node<Key,Data>* findNode(const Key& key, Node<Key,Data>* last);
 
     public:
+    explicit AvlTree(Node<Key,Data>* root = nullptr);
     Data* find(const Key& key);
     bool insert(const Key& key, const Data& data);
     bool remove(const Key& key);
+    
+    
+    // Non-interface part:
+    ~AvlTree(); //   <---TODO
+    private:
+    Node<Key,Data>* root;
 
+    AvlTree(const AvlTree& other) = delete;
+    // returns the required node or null if failed. last <- last checked node
+    Node<Key,Data>* findNode(const Key& key, Node<Key,Data>* last);
+    // inserts to the AvlTree like BinaryTreeInsert. assuming not-exists.
+    Node<Key,Data>* binaryInsert(const Key& key, const Data& data, Node<Key,Data>* last );
 
 
 };
 
 
+//by default: create an empty new AvlTree
+template  <typename Key,typename Data>
+AvlTree<Key,Data>::AvlTree(Node<Key,Data>* root) : root(root) {}
 
 
-//assuming: Key has operators: < , > , =
+//assuming: Key,Data has operators: < , > , =
 //last remains nullptr in case what we are looking for is the root itself
 template<typename Key,typename Data>
 Node<Key,Data>* AvlTree<Key,Data>::findNode(const Key& key, Node<Key,Data>* last){
@@ -76,6 +84,26 @@ Node<Key,Data>* AvlTree<Key,Data>::findNode(const Key& key, Node<Key,Data>* last
 }
 
 
+//assuming: Key,Data has copy Ctor and operator=
+//assuming: Key,Data has operators: < , > , =
+template  <typename Key,typename Data>
+Node<Key,Data>* AvlTree<Key,Data>::binaryInsert(const Key& key, const Data& data, Node<Key,Data>* last ){
+    Node<Key,Data>* newNode = new Node<Key,Data>(key,data,last);
+    
+    if( last==nullptr ){//meaning an empty tree
+        assert( this->root==nullptr );
+        root = newNode;
+    }
+    else if( key < last->key ){
+        last->left = newNode;
+    }
+    else{ assert( key > last->key );
+        last->right = newNode;
+    }
+    return newNode;
+}
+
+
 
 //returns null in case of failure
 template<typename Key,typename Data>
@@ -90,15 +118,20 @@ Data* AvlTree<Key,Data>::find(const Key& key){
 }
 
 
-
+//return values: True for "sucssess", False for  "already exists".
 template<typename Key,typename Data>
 bool AvlTree<Key,Data>::insert(const Key& key, const Data& data){
     Node<Key,Data>* lastOnSearch;
     Node<Key,Data>* exists = findNode(key,lastOnSearch);
     if( exists ) return false;
     
+    assert(lastOnSearch);
+    Node<Key,Data>* nodeOnTrack = binaryInsert(key,data,lastOnSearch);
 
-    
+    while ( nodeOnTrack->parent ){
+        /* code to fix the balance */
+    }
+    return true;
 }
 
 
