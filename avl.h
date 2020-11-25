@@ -191,12 +191,12 @@ inline void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft){
 
 template<typename Key, typename Data>
 void rotateRight(Node<Key,Data>* pivot){
-    //todo
+    //todo kostya
 }
 
 template<typename Key, typename Data>
 void rotateLeft(Node<Key,Data>* pivot){
-    //todo
+    //todo ofek
 }
 
 
