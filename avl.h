@@ -79,6 +79,12 @@ class AvlTree{
     template  <typename Key,typename Data>
     void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft);
 
+    template  <typename Key,typename Data>
+    void rotateRight(Node<Key,Data>* pivot);
+    
+    template  <typename Key,typename Data>
+    void rotateLeft(Node<Key,Data>* pivot);
+
 //end declerations
 
 //by default: create an empty new AvlTree
@@ -182,6 +188,17 @@ inline void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft){
     }
 
 }
+
+template<typename Key, typename Data>
+void rotateRight(Node<Key,Data>* pivot){
+    //todo
+}
+
+template<typename Key, typename Data>
+void rotateLeft(Node<Key,Data>* pivot){
+    //todo
+}
+
 
 
 
