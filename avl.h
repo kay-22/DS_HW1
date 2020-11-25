@@ -62,6 +62,24 @@ class AvlTree{
 
 };
 
+//declerations:
+
+    template  <typename Key,typename Data>
+    Node<Key,Data>* findSuccessor(Node<Key,Data>* deleted);
+    
+    template  <typename Key,typename Data>
+    void swapAvlNodes(Node<Key,Data>* v, Node<Key,Data>* u);
+
+    template  <typename Key,typename Data>
+    void swapNodePointers(Node<Key,Data>* ptr1, Node<Key,Data>* ptr2);
+
+    template  <typename Key,typename Data>
+    void removeLeaf(Node<Key,Data>* deleted, bool deletedIsLeft);
+
+    template  <typename Key,typename Data>
+    void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft);
+
+//end declerations
 
 //by default: create an empty new AvlTree
 template  <typename Key,typename Data>
@@ -87,7 +105,35 @@ Node<Key,Data>* AvlTree<Key,Data>::findNode(const Key& key, Node<Key,Data>* last
     return current;
 }
 
+//assuming that deleted has 2 sons
+template  <typename Key,typename Data>
+inline Node<Key,Data>* findSuccessor(Node<Key,Data>* predecessor){
+    assert(predecessor->right && predecessor->left);
+    
+    Node<Key,Data> currentNode = predecessor->right;
+    while (currentNode->left) {
+        currentNode = currentNode->left;
+    }
 
+    assert(currentNode->key > predecessor->key);
+    return currentNode;
+}
+
+template  <typename Key,typename Data>
+inline void swapNodePointers(Node<Key,Data>* ptr1, Node<Key,Data>* ptr2){  
+    Node<Key,Data>* temp;
+
+    temp = ptr1;
+    ptr1 = ptr2;
+    ptr2 = temp;
+}
+
+template  <typename Key,typename Data>
+inline void swapAvlNodes(Node<Key,Data>* v, Node<Key,Data>* u){
+    swapNodePointers(v->parent,u->parent);
+    swapNodePointers(v->right,u->right);
+    swapNodePointers(v->left,u->left);
+}
 
 
 //assuming: Key,Data has copy Ctor and operator=
@@ -99,26 +145,76 @@ Node<Key,Data>* AvlTree<Key,Data>::binaryInsert(const Key& key, const Data& data
     if( last==nullptr ){//meaning an empty tree
         assert( this->root==nullptr );
         root = newNode;
+        return newNode;
     }
-    else if( key < last->key ){
+
+    assert( (last->left == nullptr) && (last->right == nullptr));
+    if( key < last->key ){
         last->left = newNode;
     }
     else{ assert( key > last->key );
         last->right = newNode;
     }
+
     return newNode;
+
 }
 
 template<typename Key, typename Data>
-Node<Key,Data>* binaryRemove(Node<Key,Data>* deleted){
-    assert( deleted!=nullptr );
+inline void removeLeaf(Node<Key,Data>* deleted, bool deletedIsLeft){
 
-    if( (deleted->left==nullptr) && (deleted->right==nullptr)  ){ //meaning deleted is a leaf
-        deleted->parent
-    }else if(){
-
+    if (deletedIsLeft){
+        deleted->parent->left = nullptr;
+    }
+    else {
+        deleted->parent->right = nullptr;
     }
 }
+
+
+template<typename Key, typename Data>
+inline void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft){
+    if(deletedIsLeft && deleted->left) {deleted->parent->left= deleted->left;}
+    else if (deletedIsLeft && deleted->right) {deleted->parent->left= deleted->right;}
+    else if (!deletedIsLeft && deleted->left) {deleted->parent->right= deleted->left;}
+    else { assert(!deletedIsLeft && deleted->left);
+        deleted->parent->right= deleted->right;
+    }
+
+}
+
+
+
+template<typename Key, typename Data>
+Node<Key,Data>* AvlTree<Key,Data>::binaryRemove(Node<Key,Data>* deleted){
+    assert( deleted!=nullptr );
+
+    bool deletedIsLeft = (deleted->parent->left == deleted);
+
+    if( (deleted->left==nullptr) && (deleted->right==nullptr)  ){ 
+    //meaning deleted is a leaf
+        removeLeaf(deleted, deletedIsLeft);
+    }
+    else if( (deleted->left && !(deleted->right)) || (!(deleted->left) && deleted->right)){
+    // meaning deleted has only one son
+        removeVertexWithOneSon(deleted, deletedIsLeft);
+    }
+    else { assert(deleted->left && deleted->right); 
+    // meaning deleted has two sons
+        Node<Key, Data>* successor = findSuccessor(deleted);
+        swapAvlNodes(deleted, successor);
+
+        assert(deleted->left == nullptr);
+        if (deleted->right==nullptr) removeLeaf(deleted);
+        else removeVertexWithOneSon(deleted);
+    }
+
+    Node<Key,Data>* lastOnTrack = deleted->parent;
+    delete deleted;
+
+    return lastOnTrack;
+}
+
 
 
 template  <typename Key,typename Data>
