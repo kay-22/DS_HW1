@@ -266,6 +266,9 @@ template<typename Key,typename Data>
     if( !exists ) return false;
     Node<Key,Data>* nodeOnTrack = binaryRemove(exists);
 
-    //todo - co,plete the function
-     return true;
+    do{ assureBalance(nodeOnTrack);//  <--should also check succsess
+        nodeOnTrack = nodeOnTrack->parent;
+    }while ( nodeOnTrack->parent );
+
+    return true;
  }
