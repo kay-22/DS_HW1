@@ -190,13 +190,19 @@ inline void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft){
 }
 
 template<typename Key, typename Data>
-void rotateRight(Node<Key,Data>* pivot){
-    //todo kostya
-    swapNodePointers(pivot->left->parent, pivot->parent);
-    if(!(pivot->left->right)){
-        swapNodePointers(pivot->parent, pivot->left->right->parent);
-    }
-    swapNodePointers(pivot->left, pivot->left->right);
+void rotateRight(Node<Key,Data>* pivot, bool pivotIsLeft){
+
+    Node<Key,Data>* parent = pivot->parent;
+    Node<Key,Data>* leftSon = pivot->left;
+    Node<Key,Data>* leftRightGrandson = pivot->left->right; //potential seg fault
+    //if pivot is root, parent is nullptr
+    if(pivotIsLeft) swapNodePointers(parent->left, pivot->right);
+    else swapNodePointers(parent->right, pivot->right);
+    
+    swapNodePointers(pivot->parent, leftSon->parent);
+    swapNodePointers(leftSon->left, pivot->right);
+    swapNodePointers(pivot->parent, leftRightGrandson->parent); //potential seg fault
+    
     
 }
 
