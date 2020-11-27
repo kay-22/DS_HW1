@@ -59,6 +59,8 @@ class AvlTree{
     Node<Key,Data>* binaryRemove(Node<Key,Data>* deleted);
     /* assures that the balanceFactor of the node is correct by applying "role-over" if neccessary. */
     void assureBalance(Node<Key,Data>* nodeOnTrack);
+    /* performs a simple rotation to the left where pivit is grandSon of the un-balanced vertex */
+    void rotateLeft(Node<Key,Data>* pivot);
 
 };
 
@@ -82,8 +84,6 @@ class AvlTree{
     template  <typename Key,typename Data>
     void rotateRight(Node<Key,Data>* pivot);
     
-    template  <typename Key,typename Data>
-    void rotateLeft(Node<Key,Data>* pivot);
 
 //end declerations
 
@@ -195,10 +195,28 @@ void rotateRight(Node<Key,Data>* pivot){
 }
 
 template<typename Key, typename Data>
-void rotateLeft(Node<Key,Data>* pivot){
-    //todo ofek
-}
+void AvlTree<Key,Data>::rotateLeft(Node<Key,Data>* pivot){
 
+    assert( pivot->parent );
+    Node<Key,Data>* oldFather = pivot->parent->parent
+    assert( oldFather->right==pivot );
+
+    Node<Key,Data>* oldGrandFather = pivot->parent->parent;
+    pivot->parent = oldGrandFather;
+    if( oldGrandFather==nullptr ) { ////////////////////////////////parent is the root
+        root = pivot;
+    }else if( oldGrandFather->right==pivot->parent ){///////////////parent is a rightSon
+        oldGrandFather->right = pivot
+    }else{ assert( oldGrandFather->left==pivot->parent ); //////////parent is a leftSon
+        oldGrandFather->left = pivot;
+    }
+
+    oldFather->right = pivot->left;
+    if( pivot->left!=nullptr ) pivot->left->parent = oldFather;
+    pivot->left = oldFather;
+    oldFather->parent = pivot;
+}
+    
 
 
 
