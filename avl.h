@@ -1,7 +1,9 @@
 #include <assert.h>
 #include "Exceptions.h"
 
-
+static const int GO_RIGHT = -2;
+static const int GO_LEFT = 2;
+static const int  NO_HIGHT = -1;
 
 
 /* 
@@ -39,9 +41,9 @@ class AvlTree{
 
     public:
     explicit AvlTree(Node<Key,Data>* root = nullptr);
-    Data* find(const Key& key);
-    bool insert(const Key& key, const Data& data);
-    bool remove(const Key& key);
+    Data*    find(const Key& key);
+    bool     insert(const Key& key, const Data& data);
+    bool     remove(const Key& key);
     
     
     // Non-interface part:
@@ -59,8 +61,10 @@ class AvlTree{
     Node<Key,Data>* binaryRemove(Node<Key,Data>* deleted);
     /* assures that the balanceFactor of the node is correct by applying "role-over" if neccessary. */
     void assureBalance(Node<Key,Data>* nodeOnTrack);
-    /* performs a simple rotation to the left where pivit is grandSon of the un-balanced vertex */
-    void rotateLeft(Node<Key,Data>* pivot);
+    /* performs a simple rotation to the left/right -
+       where pivot is the either the unbalanced vertex or the son of the unbalanced */
+    void rotateLeft(Node<Key,Data>* pivotSon);
+    void rotateRight(Node<Key,Data>* pivotSon);
 
 };
 
@@ -68,7 +72,7 @@ class AvlTree{
 
     template  <typename Key,typename Data>
     Node<Key,Data>* findSuccessor(Node<Key,Data>* deleted);
-    
+
     template  <typename Key,typename Data>
     void swapAvlNodes(Node<Key,Data>* v, Node<Key,Data>* u);
 
@@ -83,6 +87,15 @@ class AvlTree{
 
     template  <typename Key,typename Data>
     void rotateRight(Node<Key,Data>* pivot);
+
+    template  <typename Key,typename Data,typename Functor>
+    void postOrderScan(Node<Key,Data>* root, Functor handle);
+
+    template  <typename Key,typename Data>
+    int balanceOf(Node<Key,Data>* nodeOnTrack);
+
+    // template<typename Key,typename Data>
+    // struct deleteNodeFunc;
     
 
 //end declerations
@@ -189,46 +202,79 @@ inline void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft){
 
 }
 
-template<typename Key, typename Data>
-void rotateRight(Node<Key,Data>* pivot, bool pivotIsLeft){
-
-    Node<Key,Data>* parent = pivot->parent;
-    Node<Key,Data>* leftSon = pivot->left;
-    Node<Key,Data>* leftRightGrandson = pivot->left->right; //potential seg fault
-    //if pivot is root, parent is nullptr
-    if(pivotIsLeft) swapNodePointers(parent->left, pivot->right);
-    else swapNodePointers(parent->right, pivot->right);
-    
-    swapNodePointers(pivot->parent, leftSon->parent);
-    swapNodePointers(leftSon->left, pivot->right);
-    swapNodePointers(pivot->parent, leftRightGrandson->parent); //potential seg fault
-    
-    
-}
 
 template<typename Key, typename Data>
-void AvlTree<Key,Data>::rotateLeft(Node<Key,Data>* pivot){
+void AvlTree<Key,Data>::rotateRight(Node<Key,Data>* pivotSon){
 
-    assert( pivot->parent );
-    Node<Key,Data>* oldFather = pivot->parent->parent
-    assert( oldFather->right==pivot );
+    assert( pivotSon->parent );
+    Node<Key,Data>* oldFather = pivotSon->parent;
+    assert( oldFather->left==pivotSon );
 
-    Node<Key,Data>* oldGrandFather = pivot->parent->parent;
-    pivot->parent = oldGrandFather;
+    Node<Key,Data>* oldGrandFather = pivotSon->parent->parent;
+    pivotSon->parent = oldGrandFather;
     if( oldGrandFather==nullptr ) { ////////////////////////////////parent is the root
-        root = pivot;
-    }else if( oldGrandFather->right==pivot->parent ){///////////////parent is a rightSon
-        oldGrandFather->right = pivot
-    }else{ assert( oldGrandFather->left==pivot->parent ); //////////parent is a leftSon
-        oldGrandFather->left = pivot;
+        root = pivotSon;
+    }else if( oldGrandFather->right==pivotSon->parent ){///////////////parent is a rightSon
+        oldGrandFather->right = pivotSon;
+    }else{ assert( oldGrandFather->left==pivotSon->parent ); //////////parent is a leftSon
+        oldGrandFather->left = pivotSon;
     }
 
-    oldFather->right = pivot->left;
-    if( pivot->left!=nullptr ) pivot->left->parent = oldFather;
-    pivot->left = oldFather;
-    oldFather->parent = pivot;
+    oldFather->left = pivotSon->right;
+    if( pivotSon->right!=nullptr ) pivotSon->right->parent = oldFather;
+    pivotSon->right = oldFather;
+    oldFather->parent = pivotSon;
 }
     
+
+
+template<typename Key, typename Data>
+void AvlTree<Key,Data>::rotateLeft(Node<Key,Data>* pivotSon){
+
+    assert( pivotSon->parent );
+    Node<Key,Data>* oldFather = pivotSon->parent;
+    assert( oldFather->right==pivotSon );
+
+    Node<Key,Data>* oldGrandFather = pivotSon->parent->parent;
+    pivotSon->parent = oldGrandFather;
+    if( oldGrandFather==nullptr ) { ////////////////////////////////parent is the root
+        root = pivotSon;
+    }else if( oldGrandFather->right==pivotSon->parent ){///////////////parent is a rightSon
+        oldGrandFather->right = pivotSon;
+    }else{ assert( oldGrandFather->left==pivotSon->parent ); //////////parent is a leftSon
+        oldGrandFather->left = pivotSon;
+    }
+
+    oldFather->right = pivotSon->left;
+    if( pivotSon->left!=nullptr ) pivotSon->left->parent = oldFather;
+    pivotSon->left = oldFather;
+    oldFather->parent = pivotSon;
+}
+    
+
+
+
+template  <typename Key,typename Data>
+inline int balanceOf(Node<Key,Data>* nodeOnTrack){
+    int leftHight = (nodeOnTrack->left)? nodeOnTrack->left->subTreeHight : NO_HIGHT;
+    int rightHight = (nodeOnTrack->right)? nodeOnTrack->right->subTreeHight : NO_HIGHT;
+
+    return leftHight - rightHight;
+}
+
+
+
+
+
+template  <typename Key,typename Data,typename Functor>
+void postOrderScan(Node<Key,Data>* root, Functor handle){
+    if(root == nullptr) return;
+    postOrderScan(root->left);
+    postOrderScan(root->right);
+    handle(root);
+}
+
+
 
 
 
@@ -262,11 +308,32 @@ Node<Key,Data>* AvlTree<Key,Data>::binaryRemove(Node<Key,Data>* deleted){
     return lastOnTrack;
 }
 
-
-
 template  <typename Key,typename Data>
 void AvlTree<Key,Data>::assureBalance(Node<Key,Data>* nodeOnTrack){
-    //todo
+    Node<Key,Data>* currentNode;
+
+    switch (balanceOf(nodeOnTrack))
+    {
+    case GO_RIGHT:
+        currentNode = nodeOnTrack->right;
+        if(balanceOf(nodeOnTrack) <= 0) rotateLeft(currentNode);
+        else{ assert(balanceOf(currentNode== 1));
+            currentNode = currentNode->left;
+            rotateLeft(currentNode);
+            rotateRight(currentNode);
+        }
+        break;
+
+    case GO_LEFT:
+        currentNode = nodeOnTrack->left;
+        if(balanceOf(nodeOnTrack) >= 0) rotateRight(currentNode);
+        else{ assert(balanceOf(currentNode == -1));
+            currentNode = currentNode->right;
+            rotateRight(currentNode);
+            rotateLeft(currentNode);
+        }
+        break;
+    }
     return;
 }
 
@@ -306,7 +373,7 @@ bool AvlTree<Key,Data>::insert(const Key& key, const Data& data){
 
 //return values: True for "sucssess", False for  "not exists".
 template<typename Key,typename Data>
- bool AvlTree<Key,Data>::remove(const Key& key){
+bool AvlTree<Key,Data>::remove(const Key& key){
     Node<Key,Data>* lastOnSearch;
     Node<Key,Data>* exists = findNode(key,lastOnSearch);
 
@@ -319,3 +386,19 @@ template<typename Key,typename Data>
 
     return true;
  }
+
+//template<typename Key,typename Data>
+
+
+ template<typename Key,typename Data>
+ AvlTree<Key,Data>::~AvlTree(){
+
+    struct deleteNodeFunc{
+        void operator()(Node<Key,Data>* node){
+            delete node;
+        }   
+    };
+
+    postOrderScan(root, deleteNodeFunc());
+ }
+
