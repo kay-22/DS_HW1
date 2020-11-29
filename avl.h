@@ -58,7 +58,7 @@ struct Node {
     // assuming Data and Key has copy ctor
     explicit Node(Key key, Data data, Node* parent=nullptr, Node* left = nullptr, Node* right= nullptr,
                   int subTreeHight = 0) 
-                : key(key), data(data), left(left), right(right), parent(parent) ,subTreeHight(subTreeHight) {}    
+                : key(key), data(data), parent(parent), left(left), right(right) ,subTreeHight(subTreeHight) {}    
         
 };
 
@@ -103,7 +103,7 @@ class AvlTree{
 
     friend std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree){
         struct PrintData{
-            void operator()(Node<Key,Data>* node){
+            void operator()(Node<Key,Data>* node) const{
                 std::cout << node->data << std::endl;
             }
         };
@@ -126,12 +126,12 @@ Node<Key,Data>* AvlTree<Key,Data>::findNode(const Key& key, Node<Key,Data>* last
     last = nullptr;
     Node<Key,Data>* current = root;
 
-    while( current!=nullptr  &&  key!=current->key() ){
+    while( current!=nullptr  &&  key!=current->key ){
         last=current;
 
-        if( key < current->key() ){
+        if( key < current->key ){
             current=current->left;
-        }else if( key > current->key() ){
+        }else if( key > current->key){
             current=current->right;
         }
     }
@@ -143,7 +143,7 @@ template  <typename Key,typename Data>
 static inline Node<Key,Data>* findSuccessor(Node<Key,Data>* predecessor){
     assert(predecessor->right && predecessor->left);
     
-    Node<Key,Data> currentNode = predecessor->right;
+    Node<Key,Data>* currentNode = predecessor->right;
     while (currentNode->left) {
         currentNode = currentNode->left;
     }
@@ -280,11 +280,11 @@ static inline int balanceOf(Node<Key,Data>* nodeOnTrack){
 
 
 
-template  <typename Key,typename Data,typename Functor>
+template <typename Key,typename Data,typename Functor>
 void postOrderScan(Node<Key,Data>* root,  const Functor& handle){
     if(root == nullptr) return;
-    postOrderScan(root->left);
-    postOrderScan(root->right);
+    postOrderScan(root->left, handle);
+    postOrderScan(root->right, handle);
     handle(root);
 }
 
@@ -312,8 +312,8 @@ Node<Key,Data>* AvlTree<Key,Data>::binaryRemove(Node<Key,Data>* deleted){
         swapAvlNodes(deleted, successor);
 
         assert(deleted->left == nullptr);
-        if (deleted->right==nullptr) removeLeaf(deleted);
-        else removeVertexWithOneSon(deleted);
+        if (deleted->right==nullptr) removeLeaf(deleted, deletedIsLeft);
+        else removeVertexWithOneSon(deleted, deletedIsLeft);
     }
 
     Node<Key,Data>* lastOnTrack = deleted->parent;
@@ -331,7 +331,7 @@ void AvlTree<Key,Data>::assureBalance(Node<Key,Data>* nodeOnTrack){
     case GO_RIGHT:
         currentNode = nodeOnTrack->right;
         if(balanceOf(nodeOnTrack) <= 0) rotateLeft(currentNode);
-        else{ assert(balanceOf(currentNode== 1));
+        else{ assert(balanceOf(currentNode) == 1);
             currentNode = currentNode->left;
             rotateLeft(currentNode);
             rotateRight(currentNode);
@@ -341,7 +341,7 @@ void AvlTree<Key,Data>::assureBalance(Node<Key,Data>* nodeOnTrack){
     case GO_LEFT:
         currentNode = nodeOnTrack->left;
         if(balanceOf(nodeOnTrack) >= 0) rotateRight(currentNode);
-        else{ assert(balanceOf(currentNode == -1));
+        else{ assert(balanceOf(currentNode) == -1);
             currentNode = currentNode->right;
             rotateRight(currentNode);
             rotateLeft(currentNode);
@@ -368,7 +368,7 @@ Data* AvlTree<Key,Data>::find(const Key& key){
 //return values: True for "sucssess", False for  "already exists".
 template<typename Key,typename Data>
 bool AvlTree<Key,Data>::insert(const Key& key, const Data& data){
-    Node<Key,Data>* lastOnSearch;
+    Node<Key,Data>* lastOnSearch = nullptr;
     Node<Key,Data>* exists = findNode(key,lastOnSearch);
     
     if( exists ) return false;
@@ -388,7 +388,7 @@ bool AvlTree<Key,Data>::insert(const Key& key, const Data& data){
 //return values: True for "sucssess", False for  "not exists".
 template<typename Key,typename Data>
 bool AvlTree<Key,Data>::remove(const Key& key){
-    Node<Key,Data>* lastOnSearch;
+    Node<Key,Data>* lastOnSearch = nullptr;
     Node<Key,Data>* exists = findNode(key,lastOnSearch);
 
     if( !exists ) return false;
@@ -406,12 +406,12 @@ bool AvlTree<Key,Data>::remove(const Key& key){
  template<typename Key,typename Data>
  void AvlTree<Key,Data>::clear(){
     struct deleteNodeFunc{
-        void operator()(Node<Key,Data>* node){
+        void operator()(Node<Key,Data>* node) const{
             delete node;
         }   
     };
 
-    postOrderScan(root, deleteNodeFunc());
+    postOrderScan(this->root, deleteNodeFunc());
  }
 
  template<typename Key,typename Data>
