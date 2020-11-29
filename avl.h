@@ -89,7 +89,7 @@ class AvlTree{
     //AvlTree(const AvlTree& other) = delete;
 
     /* returns the required node or null if failed. last <- last checked node */
-    Node<Key,Data>* findNode(const Key& key, Node<Key,Data>* last);
+    Node<Key,Data>* findNode(const Key& key, Node<Key,Data>** last);
     /* inserts to the AvlTree like BinaryTreeInsert. assuming "not-exists". returns a poiner to the added node. */
     Node<Key,Data>* binaryInsert(const Key& key, const Data& data, Node<Key,Data>* last );
     /* removes from the AvlTree like BinaryTreeRemove. assuming "exists". returns a pointr to the lowest on track. */
@@ -122,12 +122,12 @@ AvlTree<Key,Data>::AvlTree(Node<Key,Data>* root) : root(root) {}
 //assuming: Key,Data has operators: < , > , =
 //last remains nullptr in case what we are looking for is the root itself
 template<typename Key,typename Data>
-Node<Key,Data>* AvlTree<Key,Data>::findNode(const Key& key, Node<Key,Data>* last){
-    last = nullptr;
+Node<Key,Data>* AvlTree<Key,Data>::findNode(const Key& key, Node<Key,Data>** last){
+    *last = nullptr;
     Node<Key,Data>* current = root;
 
     while( current!=nullptr  &&  key!=current->key ){
-        last=current;
+        *last=current;
 
         if( key < current->key ){
             current=current->left;
@@ -369,14 +369,15 @@ Data* AvlTree<Key,Data>::find(const Key& key){
 template<typename Key,typename Data>
 bool AvlTree<Key,Data>::insert(const Key& key, const Data& data){
     Node<Key,Data>* lastOnSearch = nullptr;
-    Node<Key,Data>* exists = findNode(key,lastOnSearch);
+    Node<Key,Data>* exists = findNode(key,&lastOnSearch);
     
     if( exists ) return false;
     Node<Key,Data>* nodeOnTrack = binaryInsert(key,data,lastOnSearch);
     
     do{ assureBalance(nodeOnTrack);//  <--should also check suc
         nodeOnTrack = nodeOnTrack->parent;
-    }while ( nodeOnTrack->parent );
+    //}while ( nodeOnTrack->parent );
+    }while ( nodeOnTrack );
         
     return true;   
 }
@@ -389,14 +390,15 @@ bool AvlTree<Key,Data>::insert(const Key& key, const Data& data){
 template<typename Key,typename Data>
 bool AvlTree<Key,Data>::remove(const Key& key){
     Node<Key,Data>* lastOnSearch = nullptr;
-    Node<Key,Data>* exists = findNode(key,lastOnSearch);
+    Node<Key,Data>* exists = findNode(key,&lastOnSearch);
 
     if( !exists ) return false;
     Node<Key,Data>* nodeOnTrack = binaryRemove(exists);
 
     do{ assureBalance(nodeOnTrack);//  <--should also check succsess
         nodeOnTrack = nodeOnTrack->parent;
-    }while ( nodeOnTrack->parent );
+    //}while ( nodeOnTrack->parent );
+    }while ( nodeOnTrack );
 
     return true;
  }
@@ -412,6 +414,7 @@ bool AvlTree<Key,Data>::remove(const Key& key){
     };
 
     postOrderScan(this->root, deleteNodeFunc());
+    root = nullptr;
  }
 
  template<typename Key,typename Data>
