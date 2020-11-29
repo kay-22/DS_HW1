@@ -1,9 +1,42 @@
 #include <assert.h>
+#include <iostream>
 #include "Exceptions.h"
 
 static const int GO_RIGHT = -2;
 static const int GO_LEFT = 2;
 static const int  NO_HIGHT = -1;
+
+template <typename Key, typename Data>
+struct Node;
+
+//static functions declerations:
+
+    template  <typename Key,typename Data>
+    static inline Node<Key,Data>* findSuccessor(Node<Key,Data>* deleted);
+
+    template  <typename Key,typename Data>
+    static inline void swapAvlNodes(Node<Key,Data>* v, Node<Key,Data>* u);
+
+    template  <typename Key,typename Data>
+    static inline void swapNodePointers(Node<Key,Data>* ptr1, Node<Key,Data>* ptr2);
+
+    template  <typename Key,typename Data>
+    static inline void removeLeaf(Node<Key,Data>* deleted, bool deletedIsLeft);
+
+    template  <typename Key,typename Data>
+    static inline void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft);
+
+    template  <typename Key,typename Data,typename Functor>
+    static void postOrderScan(Node<Key,Data>* root, const Functor& handle);// what happens when handle does not take Node type? <-------------------------------------------------------
+
+    template  <typename Key,typename Data>
+    static inline int balanceOf(Node<Key,Data>* nodeOnTrack);
+
+    // template<typename Key,typename Data>
+    // struct deleteNodeFunc;
+    
+
+//end declerations
 
 
 /* 
@@ -38,16 +71,18 @@ struct Node {
  */
 template  <typename Key,typename Data>
 class AvlTree{
-
+//to-do: check if need const in functions
     public:
     explicit AvlTree(Node<Key,Data>* root = nullptr);
     Data*    find(const Key& key);
     bool     insert(const Key& key, const Data& data);
     bool     remove(const Key& key);
+    void     clear();
     
     
     // Non-interface part:
-    ~AvlTree(); //   <---TODO
+    ~AvlTree();
+    AvlTree& operator=(const AvlTree& other) = delete;
     private:
     Node<Key,Data>* root;
 
@@ -66,39 +101,18 @@ class AvlTree{
     void rotateLeft(Node<Key,Data>* pivotSon);
     void rotateRight(Node<Key,Data>* pivotSon);
 
+    friend std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree){
+        struct PrintData{
+            void operator()(Node<Key,Data>* node){
+                std::cout << node->data << std::endl;
+            }
+        };
+        postOrderScan(tree.root, PrintData());
+
+        return os;
+}
+
 };
-
-//declerations:
-
-    template  <typename Key,typename Data>
-    Node<Key,Data>* findSuccessor(Node<Key,Data>* deleted);
-
-    template  <typename Key,typename Data>
-    void swapAvlNodes(Node<Key,Data>* v, Node<Key,Data>* u);
-
-    template  <typename Key,typename Data>
-    void swapNodePointers(Node<Key,Data>* ptr1, Node<Key,Data>* ptr2);
-
-    template  <typename Key,typename Data>
-    void removeLeaf(Node<Key,Data>* deleted, bool deletedIsLeft);
-
-    template  <typename Key,typename Data>
-    void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft);
-
-    template  <typename Key,typename Data>
-    void rotateRight(Node<Key,Data>* pivot);
-
-    template  <typename Key,typename Data,typename Functor>
-    void postOrderScan(Node<Key,Data>* root, Functor handle);
-
-    template  <typename Key,typename Data>
-    int balanceOf(Node<Key,Data>* nodeOnTrack);
-
-    // template<typename Key,typename Data>
-    // struct deleteNodeFunc;
-    
-
-//end declerations
 
 //by default: create an empty new AvlTree
 template  <typename Key,typename Data>
@@ -126,7 +140,7 @@ Node<Key,Data>* AvlTree<Key,Data>::findNode(const Key& key, Node<Key,Data>* last
 
 //assuming that deleted has 2 sons
 template  <typename Key,typename Data>
-inline Node<Key,Data>* findSuccessor(Node<Key,Data>* predecessor){
+static inline Node<Key,Data>* findSuccessor(Node<Key,Data>* predecessor){
     assert(predecessor->right && predecessor->left);
     
     Node<Key,Data> currentNode = predecessor->right;
@@ -139,7 +153,7 @@ inline Node<Key,Data>* findSuccessor(Node<Key,Data>* predecessor){
 }
 
 template  <typename Key,typename Data>
-inline void swapNodePointers(Node<Key,Data>* ptr1, Node<Key,Data>* ptr2){  
+static inline void swapNodePointers(Node<Key,Data>* ptr1, Node<Key,Data>* ptr2){  
     Node<Key,Data>* temp;
 
     temp = ptr1;
@@ -148,7 +162,7 @@ inline void swapNodePointers(Node<Key,Data>* ptr1, Node<Key,Data>* ptr2){
 }
 
 template  <typename Key,typename Data>
-inline void swapAvlNodes(Node<Key,Data>* v, Node<Key,Data>* u){
+static inline void swapAvlNodes(Node<Key,Data>* v, Node<Key,Data>* u){
     swapNodePointers(v->parent,u->parent);
     swapNodePointers(v->right,u->right);
     swapNodePointers(v->left,u->left);
@@ -180,7 +194,7 @@ Node<Key,Data>* AvlTree<Key,Data>::binaryInsert(const Key& key, const Data& data
 }
 
 template<typename Key, typename Data>
-inline void removeLeaf(Node<Key,Data>* deleted, bool deletedIsLeft){
+static inline void removeLeaf(Node<Key,Data>* deleted, bool deletedIsLeft){
 
     if (deletedIsLeft){
         deleted->parent->left = nullptr;
@@ -192,7 +206,7 @@ inline void removeLeaf(Node<Key,Data>* deleted, bool deletedIsLeft){
 
 
 template<typename Key, typename Data>
-inline void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft){
+static inline void removeVertexWithOneSon(Node<Key,Data>* deleted, bool deletedIsLeft){
     if(deletedIsLeft && deleted->left) {deleted->parent->left= deleted->left;}
     else if (deletedIsLeft && deleted->right) {deleted->parent->left= deleted->right;}
     else if (!deletedIsLeft && deleted->left) {deleted->parent->right= deleted->left;}
@@ -255,7 +269,7 @@ void AvlTree<Key,Data>::rotateLeft(Node<Key,Data>* pivotSon){
 
 
 template  <typename Key,typename Data>
-inline int balanceOf(Node<Key,Data>* nodeOnTrack){
+static inline int balanceOf(Node<Key,Data>* nodeOnTrack){
     int leftHight = (nodeOnTrack->left)? nodeOnTrack->left->subTreeHight : NO_HIGHT;
     int rightHight = (nodeOnTrack->right)? nodeOnTrack->right->subTreeHight : NO_HIGHT;
 
@@ -267,7 +281,7 @@ inline int balanceOf(Node<Key,Data>* nodeOnTrack){
 
 
 template  <typename Key,typename Data,typename Functor>
-void postOrderScan(Node<Key,Data>* root, Functor handle){
+void postOrderScan(Node<Key,Data>* root,  const Functor& handle){
     if(root == nullptr) return;
     postOrderScan(root->left);
     postOrderScan(root->right);
@@ -389,10 +403,8 @@ bool AvlTree<Key,Data>::remove(const Key& key){
 
 //template<typename Key,typename Data>
 
-
  template<typename Key,typename Data>
- AvlTree<Key,Data>::~AvlTree(){
-
+ void AvlTree<Key,Data>::clear(){
     struct deleteNodeFunc{
         void operator()(Node<Key,Data>* node){
             delete node;
@@ -401,4 +413,10 @@ bool AvlTree<Key,Data>::remove(const Key& key){
 
     postOrderScan(root, deleteNodeFunc());
  }
+
+ template<typename Key,typename Data>
+ AvlTree<Key,Data>::~AvlTree(){
+     clear();
+ }
+
 
