@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "../avl.h"
+#include "../AvlTree.h"
 
 
 struct Tree {
