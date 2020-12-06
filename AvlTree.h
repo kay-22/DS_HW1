@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <math.h>
 #include "Exceptions.h"
 
 static const int GO_RIGHT = -2;
@@ -16,6 +17,7 @@ namespace avlTree{
     struct Node;
 
     //static functions declerations:
+        static inline int closest2Power(int n);
 
         template  <typename Key,typename Data>
         static inline Node<Key,Data>* findSuccessor(Node<Key,Data>* deleted);
@@ -31,9 +33,6 @@ namespace avlTree{
 
         template  <typename Key,typename Data>
         static inline void removeVertexWithOneSon(Node<Key,Data>* deleted, Node<Key,Data>** deltedSrc);
-
-        template  <typename Key,typename Data,typename Functor>
-        static void postOrderScan(Node<Key,Data>* root, const Functor& handle);// what happens when handle does not take Node type? <-------------------------------------------------------
 
         template  <typename Key,typename Data>
         static inline int balanceOf(Node<Key,Data>* nodeOnTrack);
@@ -65,6 +64,9 @@ namespace avlTree{
         explicit Node(const Key& key, const Data& data, Node* parent=nullptr, Node* left = nullptr,
                     Node* right= nullptr, int subTreeHight = 0) 
                     : key(key), data(data), parent(parent), left(left), right(right) ,subTreeHight(subTreeHight) {}     
+        
+        
+        Node(const Node& other) = delete;
     };
 
 
@@ -82,16 +84,28 @@ namespace avlTree{
         Data*    find(const Key& key);
         bool     insert(const Key& key, const Data& data);
         bool     remove(const Key& key);
-        void     clear();
         
         
         // Non-interface part:
-        ~AvlTree();
+        static AvlTree SemiFullTree(int nodesNum);
+        template <typename Functor>
+        static void postOrderScan(Node<Key,Data>* root, const Functor& handle);// what happens when handle does not take Node type? <-------------------------------------------------------
+        template <typename Functor>
+        static void preOrderScan(Node<Key,Data>* root,  const Functor& handle);
+        template <typename Functor>
+        static void inOrderScan(Node<Key,Data>* root,  const Functor& handle);
+        template <typename Functor>
+        static void reveresedPostOrderScan(Node<Key,Data>* root, const Functor& handle);
+        AvlTree(const AvlTree& other);
         AvlTree& operator=(const AvlTree& other) = delete;
+        void clear();
+        ~AvlTree();
+
+        
         private:
         Node<Key,Data>* root;
 
-        //AvlTree(const AvlTree& other) = delete;
+        
 
         /* returns the required node or null if failed. last <- last checked node */
         Node<Key,Data>* findNode(const Key& key, Node<Key,Data>*& last);
@@ -114,7 +128,7 @@ namespace avlTree{
                     std::cout << node->data << " " << balanceOf(node) << " " << node->subTreeHight << std::endl;
                 }
             };
-            postOrderScan(tree.root, PrintData());
+            AvlTree<Key,Data>::postOrderScan(tree.root, PrintData());
 
             return os;
     }
@@ -144,6 +158,22 @@ namespace avlTree{
         }
         return current;
     }
+
+
+
+    static inline int closest2Power(int n){
+        int twoPower = 1;
+        int result = 0;
+
+        while (n > twoPower-1){
+            twoPower *= 2;
+            result++;
+        }
+
+        return result;
+    }
+
+
 
     //assuming that deleted has 2 sons
     template  <typename Key,typename Data>
@@ -293,13 +323,50 @@ namespace avlTree{
 
 
 
-    template <typename Key,typename Data,typename Functor>
-    void postOrderScan(Node<Key,Data>* root,  const Functor& handle){
+    template <typename Key,typename Data> 
+    template <typename Functor>
+    void AvlTree<Key,Data>::postOrderScan(Node<Key,Data>* root,  const Functor& handle){
         if(root == nullptr) return;
         postOrderScan(root->left, handle);
         postOrderScan(root->right, handle);
         handle(root);
     }
+
+
+
+    template <typename Key,typename Data>
+    template <typename Functor>
+    void AvlTree<Key,Data>::inOrderScan(Node<Key,Data>* root,  const Functor& handle){
+        if(root == nullptr) return;
+        inOrderScan(root->left, handle);
+        handle(root);
+        inOrderScan(root->right, handle);
+    }
+
+
+
+    template <typename Key,typename Data>
+    template <typename Functor>
+    static void preOrderScan(Node<Key,Data>* root,  const Functor& handle){
+        if(root == nullptr) return;
+        handle(root);
+        preOrderScan(root->left, handle);
+        preOrderScan(root->right, handle);
+    }
+
+
+
+
+    template <typename Key,typename Data>
+    template <typename Functor>
+    void AvlTree<Key,Data>::reveresedPostOrderScan(Node<Key,Data>* root,  const Functor& handle){
+        if(root == nullptr) return;
+        reveresedPostOrderScan(root->right, handle);
+        reveresedPostOrderScan(root->left, handle);
+        handle(root);
+
+    }
+
 
 
 
@@ -444,8 +511,79 @@ namespace avlTree{
         return true;
     }
 
-    //template<typename Key,typename Data>
 
+
+    // constructs a semi-full avl tree with default
+    // homogeneous Data, Key for all nodes
+    template <typename Key,typename Data>
+    AvlTree<Key,Data> AvlTree<Key,Data>::SemiFullTree(int nodesNum){
+        int hight = closest2Power(nodesNum) - 1;
+        AvlTree<Key,Data> result;
+        result.insert(Key(),Data());
+
+        semiFullTreeAux(result.root, hight);
+
+        struct removeExtraLeaves {
+            int currentExtra;
+            removeExtraLeaves(int currentExtra) : currentExtra(currentExtra) {}
+            void operator()(Node<Key,Data>* node){
+                assureHight(node);
+                if (currentExtra > 0 && node->subTreeHight == 0){
+                    delete node;
+                    currentExtra--;
+                }
+            }   
+        };
+
+        int extraLeaves = (pow(2,hight+1) - 1) - nodesNum;
+        reveresedPostOrder(result.root, removeExtraLeaves(extraLeaves));
+
+        return result;
+    }
+
+
+
+    template <typename Key,typename Data>
+    static void semiFullTreeAux(Node<Key,Data>* node, int hight){
+        if (hight <= 0) return;
+        node->left = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
+        node->right = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
+
+        semiFullTreeAux(node->left, hight-1);
+        semiFullTreeAux(node->right, hight-1);
+    }
+
+
+    
+    
+    template<typename Key,typename Data>
+    AvlTree<Key,Data>::AvlTree(const AvlTree& other){
+
+
+        // assuming that clonedRoot was already cloned before the cloneVertex call
+        struct CloneVertex{
+            Node<Key,Data>* currentVertex;
+            CloneVertex(Node<Key,Data>* clonedRoot) : currentVertex(clonedRoot){}
+            void operator()(Node<Key,Data>* node){
+                if (node->left != nullptr) currentVertex->left = new Node<Key,Data>(
+                                                node->left->key,node->left->data, currentVertex, 
+                                                nullptr,nullptr, node->left->subTreeHight);
+
+                if (node->right != nullptr) currentVertex->right = new Node<Key,Data>(
+                                                node->right->key,node->right->data, currentVertex, 
+                                                nullptr,nullptr, node->right->subTreeHight);
+            }  
+        };
+
+        root = new Node<Key,Data>(other.root->key, other.root->data, 
+                        nullptr, nullptr, nullptr, other.root->subTreeHight);
+
+        preOrderScan(root, CloneVertex(root));
+    }
+
+
+
+    //template<typename Key,typename Data>
     template<typename Key,typename Data>
     void AvlTree<Key,Data>::clear(){
         struct deleteNodeFunc{
