@@ -87,15 +87,16 @@ namespace avlTree{
         
         
         // Non-interface part:
-        static AvlTree& semiFullTree(int nodesNum);
+        Node<Key,Data>*const getRoot() { return root; }
+        static AvlTree semiFullTree(int nodesNum);
         template <typename Functor>
-        static void postOrderScan(Node<Key,Data>* root, const Functor& handle);// what happens when handle does not take Node type? <-------------------------------------------------------
+        static void postOrder(Node<Key,Data>* root, Functor& handle);// what happens when handle does not take Node type? <-------------------------------------------------------
         template <typename Functor>
-        static void preOrderScan(Node<Key,Data>* root,  const Functor& handle);
+        static void preOrder(Node<Key,Data>* root,  Functor& handle);
         template <typename Functor>
-        static void inOrderScan(Node<Key,Data>* root,  const Functor& handle);
+        static void inOrder(Node<Key,Data>* root,  Functor& handle);
         template <typename Functor>
-        static void reveresedPostOrderScan(Node<Key,Data>* root, const Functor& handle);
+        static void reveresedPostOrder(Node<Key,Data>* root, Functor& handle);
         AvlTree(const AvlTree& other);
         AvlTree& operator=(const AvlTree& other) = delete;
         void clear();
@@ -121,6 +122,8 @@ namespace avlTree{
         where pivot is the either the unbalanced vertex or the son of the unbalanced */
         void rotateLeft(Node<Key,Data>* pivotSon);
         void rotateRight(Node<Key,Data>* pivotSon);
+        /* expands a single node tree to full tree */
+        static void expendToFullTree(Node<Key,Data>* node, int hight);
 
         friend std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree){
             struct PrintData{
@@ -128,7 +131,7 @@ namespace avlTree{
                     std::cout << node->data << " " << balanceOf(node) << " " << node->subTreeHight << std::endl;
                 }
             };
-            AvlTree<Key,Data>::postOrderScan(tree.root, PrintData());
+            AvlTree<Key,Data>::postOrder(tree.root, PrintData());
 
             return os;
     }
@@ -342,10 +345,10 @@ namespace avlTree{
 
     template <typename Key,typename Data> 
     template <typename Functor>
-    void AvlTree<Key,Data>::postOrderScan(Node<Key,Data>* root,  const Functor& handle){
+    void AvlTree<Key,Data>::postOrder(Node<Key,Data>* root, Functor& handle){
         if(root == nullptr) return;
-        postOrderScan(root->left, handle);
-        postOrderScan(root->right, handle);
+        postOrder(root->left, handle);
+        postOrder(root->right, handle);
         handle(root);
     }
 
@@ -354,11 +357,11 @@ namespace avlTree{
 
     template <typename Key,typename Data>
     template <typename Functor>
-    void AvlTree<Key,Data>::inOrderScan(Node<Key,Data>* root,  const Functor& handle){
+    void AvlTree<Key,Data>::inOrder(Node<Key,Data>* root, Functor& handle){
         if(root == nullptr) return;
-        inOrderScan(root->left, handle);
+        inOrder(root->left, handle);
         handle(root);
-        inOrderScan(root->right, handle);
+        inOrder(root->right, handle);
     }
 
 
@@ -366,11 +369,11 @@ namespace avlTree{
 
     template <typename Key,typename Data>
     template <typename Functor>
-    void AvlTree<Key,Data>::preOrderScan(Node<Key,Data>* root,  const Functor& handle){
+    void AvlTree<Key,Data>::preOrder(Node<Key,Data>* root, Functor& handle){
         if(root == nullptr) return;
         handle(root);
-        preOrderScan(root->left, handle);
-        preOrderScan(root->right, handle);
+        preOrder(root->left, handle);
+        preOrder(root->right, handle);
     }
 
 
@@ -378,10 +381,10 @@ namespace avlTree{
 
     template <typename Key,typename Data>
     template <typename Functor>
-    void AvlTree<Key,Data>::reveresedPostOrderScan(Node<Key,Data>* root,  const Functor& handle){
+    void AvlTree<Key,Data>::reveresedPostOrder(Node<Key,Data>* root, Functor& handle){
         if(root == nullptr) return;
-        reveresedPostOrderScan(root->right, handle);
-        reveresedPostOrderScan(root->left, handle);
+        reveresedPostOrder(root->right, handle);
+        reveresedPostOrder(root->left, handle);
         handle(root);
 
     }
@@ -542,18 +545,20 @@ namespace avlTree{
     // constructs and returns a semi-full avl tree with
     // default homogeneous (Key,Data) for all nodes
     template <typename Key,typename Data>
-    AvlTree<Key,Data>& AvlTree<Key,Data>::semiFullTree(int nodesNum){
+    AvlTree<Key,Data> AvlTree<Key,Data>::semiFullTree(int nodesNum){
         int hight = closest2Power(nodesNum) - 1;
-        AvlTree<Key,Data> result = new AvlTree();
+        AvlTree<Key,Data> result;
         result.insert(Key(),Data());
 
         expendToFullTree(result.root, hight);
 
-        struct removeExtraLeaves {
+        struct RemoveExtraLeaves {
+            AvlTree<Key,Data>* resTree;
             int currentExtra;
-            removeExtraLeaves(int currentExtra) : currentExtra(currentExtra) {}
+            RemoveExtraLeaves(AvlTree<Key,Data>* resTree, int currentExtra) 
+                : resTree(resTree), currentExtra(currentExtra) {}
             void operator()(Node<Key,Data>* node){
-                assureHight(node);
+                resTree->assureHight(node);
                 if (currentExtra > 0 && node->subTreeHight == 0){
                     delete node;
                     currentExtra--;
@@ -562,7 +567,8 @@ namespace avlTree{
         };
 
         int extraLeaves = (pow(2,hight+1) - 1) - nodesNum;
-        reveresedPostOrder(result.root, removeExtraLeaves(extraLeaves));
+        RemoveExtraLeaves removeExtraLeaves(&result, extraLeaves);
+        reveresedPostOrder(result.root, removeExtraLeaves);
 
         return result;
     }
@@ -571,7 +577,7 @@ namespace avlTree{
 
 
     template <typename Key,typename Data>
-    static void expendToFullTree(Node<Key,Data>* node, int hight){
+    void AvlTree<Key,Data>::expendToFullTree(Node<Key,Data>* node, int hight){
         if (hight <= 0) return;
         node->left = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
         node->right = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
@@ -604,7 +610,8 @@ namespace avlTree{
         root = new Node<Key,Data>(other.root->key, other.root->data, 
                         nullptr, nullptr, nullptr, other.root->subTreeHight);
 
-        preOrderScan(root, CloneVertex(root));
+        CloneVertex cloneVertex(root);
+        preOrder(root, cloneVertex);
     }
 
 
@@ -614,13 +621,13 @@ namespace avlTree{
     template<typename Key,typename Data>
     void AvlTree<Key,Data>::clear(){
         
-        struct deleteNodeFunc{
+        struct DeleteNodeFunc{
             void operator()(Node<Key,Data>* node) const{
                 delete node;
             }   
         };
-
-        postOrderScan(this->root, deleteNodeFunc());
+        DeleteNodeFunc deleteNodeFunc;
+        postOrder(this->root, deleteNodeFunc);
         root = nullptr;
     }
 

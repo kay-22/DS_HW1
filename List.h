@@ -1,6 +1,7 @@
 #ifndef LIST_H_
 #define LIST_H_
 
+#include <cassert>
 
 namespace list{
 
@@ -34,7 +35,8 @@ namespace list{
 
         void clear();
         /* returns an iterator to the added node's data */
-        iterator add(const T& data);
+        iterator pushFront(const T& data);
+        iterator pushBack(const T& data);
         /* returns an iterator to the node following the removed node. returns end() if the last node is removed */ 
         iterator remove(iterator);
         /* returns an iterator of the found node, or end() if didn't find */
@@ -77,6 +79,7 @@ namespace list{
         explicit iterator(const void*) : list(nullptr), current(nullptr) {}
 
     public:
+        iterator() { *this = iteratorNull(); }
         iterator(const iterator&) = default;
         iterator& operator=(const iterator&) = default;
 
@@ -92,12 +95,6 @@ namespace list{
         }
 
         bool operator==(const iterator& other) const {
-            assert(list == other.list);
-
-            return current == other.current;
-        }
-
-       bool operator==(const iterator& other) const {
             assert(list == other.list);
 
             return current == other.current;
@@ -119,9 +116,9 @@ namespace list{
         }
 
         T& operator*() {
-            if (*this==nullptr  ){
+            if (*this==nullptr){
                 // intentional segmentation fault
-                return *(this->list);
+                return this->list->head->data;
             }
             assert(current != nullptr);
             return current->data;
@@ -130,7 +127,7 @@ namespace list{
         const T& operator*() const{
             if (*this==nullptr  ){
                 // intentional segmentation fault
-                return *(this->list);
+                return this->list->head->data;
             }
             assert(current != nullptr);
             return current->data;
@@ -146,7 +143,7 @@ namespace list{
         }
 
         static iterator iteratorNull(){
-            return const_iterator(nullptr);
+            return iterator(nullptr);
         }
     };
 
@@ -162,6 +159,7 @@ namespace list{
         explicit const_iterator(const void*) : list(nullptr), current(nullptr) {}
 
     public:
+        const_iterator() { *this = iteratorNull(); }
         const_iterator(const const_iterator&) = default;
         const_iterator& operator=(const const_iterator&) = default;
         
@@ -201,7 +199,7 @@ namespace list{
         const T& operator*() const{
             if (*this==nullptr  ){
                 // intentional segmentation fault
-                return *(this->list);
+                return this->list->head->data;
             }
             assert(current != nullptr);
             return current->data;
@@ -223,7 +221,7 @@ namespace list{
     List<T>::List(const List<T>& other) : head(nullptr), tail(nullptr), size(0){
 
         for (const_iterator it = other.begin(); it != other.end(); it++) {
-            add(*it);
+            pushFront(*it);
         }
 
         assert(size == other.size);
@@ -281,7 +279,7 @@ namespace list{
 
 
     template <typename T>
-    typename List<T>::iterator List<T>::add(const T& data){
+    typename List<T>::iterator List<T>::pushFront(const T& data){
        // Node<T>* temp = head;
         //Node<T>* prev = nullptr;
         Node<T>* node = new Node<T>(data, head);
@@ -300,6 +298,31 @@ namespace list{
         
         size++;
         return begin();
+    }
+
+
+
+
+    template <typename T>
+    typename List<T>::iterator List<T>::pushBack(const T& data){
+       // Node<T>* temp = head;
+        //Node<T>* prev = nullptr;
+        Node<T>* node = new Node<T>(data, head);
+
+        if (head == nullptr) {
+            assert(size == 0);
+            head = node;
+        }
+
+        node->prev = tail;
+        tail = node;
+
+        if (tail->prev != nullptr) {
+            tail->prev->next = node;
+        }
+        
+        size++;
+        return getPrevious(end());
     }
 
 

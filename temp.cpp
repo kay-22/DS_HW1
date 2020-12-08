@@ -15,9 +15,9 @@ int main(){
     list.clear();
     assert(list.getSize() == 0);
     list.remove(list.find(3));
-    list.add(3);
-    list.add(2);
-    list.add(1);
+    list.pushFront(3);
+    list.pushFront(2);
+    list.pushFront(1);
     assert(list.getSize() == 3);
 
     

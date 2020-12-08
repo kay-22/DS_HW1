@@ -13,7 +13,7 @@ class CoursesManager {
     list::List<Time> timeAxis;
 
 public:
-    CoursesManager() = default;
+    CoursesManager();
 
     //return values: True for "sucssess", False for  "already exists".
     bool AddCourse (int courseID, int numOfClasses);

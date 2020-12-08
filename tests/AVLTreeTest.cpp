@@ -17,7 +17,7 @@
 
 
 struct Tree {
-	AvlTree<int, int> tree;
+	avlTree::AvlTree<int, int> tree;
 
 	void addNode(int key, int data){
 		tree.insert(key, data);
