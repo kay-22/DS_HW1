@@ -42,8 +42,11 @@ namespace list{
         const_iterator find(const T& data) const;
         /* returns true if data is found, and false otherwise. */
         bool contains(const T& data) const;
+
+
         int getSize() const;
         bool isEmpty();
+
 
         /* returns an iterator to the head of the list */
         iterator begin();
@@ -53,6 +56,7 @@ namespace list{
         const_iterator begin() const;
         /* returns an iterator to the tail of the list */
         const_iterator end() const;
+
 
         /*  returns the previous iterator. tail will be returned if iterator's current node is nullptr.
             nullptr will be returned if iterator's current node is head */
@@ -79,29 +83,19 @@ namespace list{
             if (current != nullptr) current = current->next;
             return *this;
         }
-
+        
         iterator operator++(int) {
             iterator result = *this;
             ++*this;
             return result;
         }
 
-        // iterator& operator--() {
-        //     if (current != nullptr) current = current->prev;
-        //     return *this;
-        // }
-
-        // iterator operator--(int) {
-        //     iterator result = *this;
-        //     --*this;
-        //     return result;
-        // }
-
         bool operator==(const iterator& other) const {
             assert(list == other.list);
 
             return current == other.current;
         }
+
         bool operator!=(const iterator& other) const {
             return !(*this == other);
         }
@@ -119,10 +113,10 @@ namespace list{
         T* operator->() {
             return  &(operator*());
         }
+
         const T* operator->() const {
             return  &(operator*());
         }
-
     };
 
 
@@ -150,17 +144,6 @@ namespace list{
             return result;
         }
 
-        // const_iterator& operator--() {
-        //     if (current != nullptr) current = current->prev;
-        //     return *this;
-        // }
-
-        // const_iterator operator--(int) {
-        //     const_iterator result = *this;
-        //     --*this;
-        //     return result;
-        // }
-
         bool operator==(const const_iterator& other) const {
             assert(list == other.list);
 
@@ -174,11 +157,10 @@ namespace list{
             assert(current != nullptr);
             return current->data;
         }
+
         const T* operator->() const {
             return  &(operator*());
-        }
-
-        
+        }  
     };
 
 
@@ -192,6 +174,7 @@ namespace list{
 
         assert(size == other.size);
     }
+
 
 
 
@@ -222,6 +205,7 @@ namespace list{
 
 
 
+
     template <typename T>
     void List<T>::clear() {
         Node<T>* current = head;
@@ -237,6 +221,8 @@ namespace list{
 
         assert(size == 0);
     }
+
+
 
 
 
@@ -261,6 +247,8 @@ namespace list{
         size++;
         return begin();
     }
+
+
 
 
 
@@ -293,6 +281,8 @@ namespace list{
 
 
 
+
+
     template <typename T>
     typename List<T>::iterator List<T>::find(const T& data){
         iterator it = begin();
@@ -303,6 +293,7 @@ namespace list{
 
         return it;
     }
+
 
 
 
@@ -319,6 +310,7 @@ namespace list{
 
 
 
+
     template <typename T>
     bool List<T>::contains(const T& data) const{
         return find(data) != end();
@@ -326,10 +318,12 @@ namespace list{
 
 
 
+
     template <typename T>
     int List<T>::getSize() const{
         return size;
     }
+
 
 
 
@@ -341,11 +335,13 @@ namespace list{
 
 
 
+
     template <typename T>
     typename List<T>::iterator List<T>::begin() {
         return iterator(this, head);
     }
     
+
 
     
     template <typename T>
@@ -355,6 +351,7 @@ namespace list{
 
     
 
+
     
     template <typename T>
     typename List<T>::const_iterator List<T>::begin() const{
@@ -362,11 +359,13 @@ namespace list{
     }
     
 
+
     
     template <typename T>
     typename List<T>::const_iterator List<T>::end() const{
         return const_iterator(this, nullptr);
     }
+
 
 
 
@@ -378,11 +377,16 @@ namespace list{
 
 
 
+
     template <typename T>
     typename List<T>::const_iterator List<T>::getPrevious(const_iterator dataIterator) const{
         if (dataIterator == end()) return const_iterator(this, tail);
         return const_iterator(this, dataIterator.current->prev);
     }
-}
+
+
+
+}// end of namespace list
+
 
 #endif //LIST_H_
