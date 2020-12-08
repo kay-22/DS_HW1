@@ -74,6 +74,7 @@ namespace list{
         friend class List;
 
         iterator(const List* list, Node<T>* current) : list(list), current(current) {}
+        explicit iterator(const void*) : list(nullptr), current(nullptr) {}
 
     public:
         iterator(const iterator&) = default;
@@ -96,19 +97,45 @@ namespace list{
             return current == other.current;
         }
 
+       bool operator==(const iterator& other) const {
+            assert(list == other.list);
+
+            return current == other.current;
+        }
+
         bool operator!=(const iterator& other) const {
             return !(*this == other);
         }
 
+        
+        bool operator==(void* other) const {
+            assert( other==nullptr );
+
+            return (list == nullptr);
+        }
+        
+        bool operator!=(void* other) const {
+            return !(*this == other);
+        }
+
         T& operator*() {
+            if (*this==nullptr  ){
+                // intentional segmentation fault
+                return *(this->list);
+            }
             assert(current != nullptr);
             return current->data;
         }
         
         const T& operator*() const{
+            if (*this==nullptr  ){
+                // intentional segmentation fault
+                return *(this->list);
+            }
             assert(current != nullptr);
             return current->data;
         }
+
 
         T* operator->() {
             return  &(operator*());
@@ -116,6 +143,10 @@ namespace list{
 
         const T* operator->() const {
             return  &(operator*());
+        }
+
+        static iterator iteratorNull(){
+            return const_iterator(nullptr);
         }
     };
 
@@ -128,11 +159,12 @@ namespace list{
         friend class List;
 
         const_iterator(const List* list, Node<T>* current) : list(list), current(current) {}
+        explicit const_iterator(const void*) : list(nullptr), current(nullptr) {}
 
     public:
         const_iterator(const const_iterator&) = default;
         const_iterator& operator=(const const_iterator&) = default;
-
+        
         const_iterator& operator++() {
             if (current != nullptr) current = current->next;
             return *this;
@@ -149,18 +181,40 @@ namespace list{
 
             return current == other.current;
         }
+
         bool operator!=(const const_iterator& other) const {
             return !(*this == other);
         }
+
+        
+        bool operator==(void* other) const {
+            assert( other==nullptr );
+
+            return (list == nullptr);
+        }
+        
+        bool operator!=(void* other) const {
+            return !(*this == other);
+        }
+        
         
         const T& operator*() const{
+            if (*this==nullptr  ){
+                // intentional segmentation fault
+                return *(this->list);
+            }
             assert(current != nullptr);
             return current->data;
         }
 
+
         const T* operator->() const {
             return  &(operator*());
         }  
+
+        static const_iterator iteratorNull(){
+            return const_iterator(nullptr);
+        }
     };
 
 
@@ -254,6 +308,7 @@ namespace list{
 
     template <typename T>
     typename List<T>::iterator List<T>::remove(iterator dataIterator) {
+        assert( dataIterator!=nullptr );
         if (dataIterator == end()) return end();
 
         iterator tempIt = dataIterator;
@@ -371,6 +426,7 @@ namespace list{
 
     template <typename T>
     typename List<T>::iterator List<T>::getPrevious(iterator dataIterator) {
+        assert( dataIterator!=nullptr );
         if (dataIterator == end()) return iterator(this, tail);
         return iterator(this, dataIterator.current->prev);
     }
@@ -380,6 +436,7 @@ namespace list{
 
     template <typename T>
     typename List<T>::const_iterator List<T>::getPrevious(const_iterator dataIterator) const{
+        assert( dataIterator!=nullptr );
         if (dataIterator == end()) return const_iterator(this, tail);
         return const_iterator(this, dataIterator.current->prev);
     }

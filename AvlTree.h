@@ -87,7 +87,7 @@ namespace avlTree{
         
         
         // Non-interface part:
-        static AvlTree SemiFullTree(int nodesNum);
+        static AvlTree& semiFullTree(int nodesNum);
         template <typename Functor>
         static void postOrderScan(Node<Key,Data>* root, const Functor& handle);// what happens when handle does not take Node type? <-------------------------------------------------------
         template <typename Functor>
@@ -135,9 +135,12 @@ namespace avlTree{
 
     };
 
+
+
     //by default: create an empty new AvlTree
     template  <typename Key,typename Data>
     AvlTree<Key,Data>::AvlTree(Node<Key,Data>* root) : root(root) {}
+
 
 
     //assuming: Key,Data has operators: < , > , =
@@ -161,6 +164,7 @@ namespace avlTree{
 
 
 
+
     static inline int closest2Power(int n){
         int twoPower = 1;
         int result = 0;
@@ -172,6 +176,7 @@ namespace avlTree{
 
         return result;
     }
+
 
 
 
@@ -534,15 +539,15 @@ namespace avlTree{
 
 
 
-    // constructs a semi-full avl tree with default
-    // homogeneous Data, Key for all nodes
+    // constructs and returns a semi-full avl tree with
+    // default homogeneous (Key,Data) for all nodes
     template <typename Key,typename Data>
-    AvlTree<Key,Data> AvlTree<Key,Data>::SemiFullTree(int nodesNum){
+    AvlTree<Key,Data>& AvlTree<Key,Data>::semiFullTree(int nodesNum){
         int hight = closest2Power(nodesNum) - 1;
-        AvlTree<Key,Data> result;
+        AvlTree<Key,Data> result = new AvlTree();
         result.insert(Key(),Data());
 
-        semiFullTreeAux(result.root, hight);
+        expendToFullTree(result.root, hight);
 
         struct removeExtraLeaves {
             int currentExtra;
@@ -566,13 +571,13 @@ namespace avlTree{
 
 
     template <typename Key,typename Data>
-    static void semiFullTreeAux(Node<Key,Data>* node, int hight){
+    static void expendToFullTree(Node<Key,Data>* node, int hight){
         if (hight <= 0) return;
         node->left = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
         node->right = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
 
-        semiFullTreeAux(node->left, hight-1);
-        semiFullTreeAux(node->right, hight-1);
+        expendToFullTree(node->left, hight-1);
+        expendToFullTree(node->right, hight-1);
     }
 
 

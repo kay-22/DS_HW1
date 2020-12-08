@@ -24,10 +24,13 @@ struct Course {
     avlTree::AvlTree<int,Lecture*> lectures;
     list::List<Time>::iterator maxTime;
 
-    Course(int numOfClasses) /* : lectures(AvlTree<int,Lecture*>::semiFullTree(numOfClasses) */ {
-    //todo: create array from zero to numOfClasses 
-    //      make sure time axis is updated
-    //      create a corresponding array of data
+    Course(int numOfClasses,list::List<Time>::iterator initialMax)
+            : lectures(avlTree::AvlTree<int,Lecture*>::semiFullTree(numOfClasses)),
+              maxTime( list::List<Time>::iterator::iteratorNull() ){
+
+    //  todo:  create array from zero to numOfClasses 
+    //          make sure time axis is updated
+    //          create a corresponding array of data
     //------------------------------------------------------------------------------------------------------
     }
 };
