@@ -611,7 +611,7 @@ namespace avlTree{
                         nullptr, nullptr, nullptr, other.root->subTreeHight);
 
         CloneVertex cloneVertex(root);
-        preOrder(root, cloneVertex);
+        preOrder(other.root, cloneVertex);
     }
 
 

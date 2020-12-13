@@ -20,17 +20,27 @@ struct Time {
     explicit Time(int time) : time(time) {}
 };
 
+
+
+
+
 //Lecture is a list element that holds an iterator of the current time_views
 struct Lecture {
-    int courseID;
-    list::List<Time>::const_iterator currentTime;
+    int courseID; //for GetMostViewedClasses
+    int classID;
+    list::List<Time>::iterator currentTime;
 
     //Lecture() 
     //    : currentTime(list::List<Time>::const_iterator::iteratorNull()), courseID(NO_COURSE) {}
 
-    Lecture(int courseID, const list::List<Time>& timeAxis)
-        : courseID(courseID), currentTime(timeAxis.begin()) {}
+    Lecture(int courseID, int classID, const list::List<Time>::iterator& currentTime)
+        : courseID(courseID), classID(classID), currentTime(currentTime) {}
 };
+
+
+
+
+
 
 struct Course{
     avlTree::AvlTree<int,list::List<Lecture>::iterator> lectures;
@@ -40,7 +50,7 @@ struct Course{
             : lectures(avlTree::AvlTree<int,list::List<Lecture>::iterator>::semiFullTree(numOfClasses)),
               maxTime( list::List<Time>::iterator::iteratorNull() ){
 
-        int i = 0;
+        int i = 1;
         std::function<void(avlTree::Node<int,list::List<Lecture>::iterator>*)>  assignNodes = 
             [&i](avlTree::Node<int,list::List<Lecture>::iterator>* node) {
                 node->key = i;
@@ -49,7 +59,7 @@ struct Course{
             };
 
     avlTree::AvlTree<int, list::List<Lecture>::iterator>::inOrder(lectures.getRoot(), assignNodes);
-    assert(i == numOfClasses-1);
+    assert(i == numOfClasses+1);
     }
 };
 

@@ -36,7 +36,11 @@ namespace list{
         void clear();
         /* returns an iterator to the added node's data */
         iterator pushFront(const T& data);
+        iterator pushAfter(const T& data, const iterator& predecessor);
         iterator pushBack(const T& data);
+        /* returns an iterator to the tail of the list */
+        iterator back();
+        const_iterator back() const;
         /* returns an iterator to the node following the removed node. returns end() if the last node is removed */ 
         iterator remove(iterator);
         /* returns an iterator of the found node, or end() if didn't find */
@@ -303,9 +307,39 @@ namespace list{
 
 
 
+
+    template <typename T>
+    typename List<T>::iterator List<T>::pushAfter(const T& data, const iterator& predecessor){
+
+        if (head == nullptr) {
+            assert(size==0);
+            return pushFront(data);
+        }
+        else if (size == 1) {
+            return pushBack(data);
+        }
+
+        Node<T>* node = new Node<T>(data);
+
+        node->prev = predecessor.current;
+        node->next = predecessor.current->next;
+        predecessor.current->next = node;
+
+        assert(node->next);
+        node->next->prev = node;
+        
+        size++;
+        return iterator(this, node);
+    }
+
+
+
+
+
+
     template <typename T>
     typename List<T>::iterator List<T>::pushBack(const T& data){
-       // Node<T>* temp = head;
+        // Node<T>* temp = head;
         //Node<T>* prev = nullptr;
         Node<T>* node = new Node<T>(data, head);
 
@@ -325,6 +359,21 @@ namespace list{
         return getPrevious(end());
     }
 
+
+
+    template <typename T>
+    typename List<T>::iterator List<T>::back(){
+        assert(size >= 1);
+        return iterator(this, tail);
+    }
+
+
+
+    template <typename T>
+    typename List<T>::const_iterator List<T>::back() const{
+        assert(size >= 1);
+        return const_iterator(this, tail);
+    }
 
 
 

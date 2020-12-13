@@ -17,8 +17,8 @@ public:
 
     //return values: True for "sucssess", False for  "already exists".
     bool AddCourse (int courseID, int numOfClasses);
-
-    StatusType RemoveCourse(int courseID);
+    //return values: True for "sucssess", False for  "doesn't exists".
+    bool RemoveCourse(int courseID);
 
     StatusType WatchClass(int courseID, int classID, int time);
 
