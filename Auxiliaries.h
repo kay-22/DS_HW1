@@ -45,12 +45,14 @@ struct Lecture {
 struct Course{
     avlTree::AvlTree<int,list::List<Lecture>::iterator> lectures;
     list::List<Time>::iterator maxTime;
+    int numOfClasses;
 
     Course(int courseID, int numOfClasses)
             : lectures(avlTree::AvlTree<int,list::List<Lecture>::iterator>::semiFullTree(numOfClasses)),
-              maxTime( list::List<Time>::iterator::iteratorNull() ){
+              maxTime( list::List<Time>::iterator::iteratorNull() ),
+              numOfClasses(numOfClasses){
 
-        int i = 1;
+        int i = 0;
         std::function<void(avlTree::Node<int,list::List<Lecture>::iterator>*)>  assignNodes = 
             [&i](avlTree::Node<int,list::List<Lecture>::iterator>* node) {
                 node->key = i;
@@ -59,8 +61,9 @@ struct Course{
             };
 
     avlTree::AvlTree<int, list::List<Lecture>::iterator>::inOrder(lectures.getRoot(), assignNodes);
-    assert(i == numOfClasses+1);
+    assert(i == numOfClasses);
     }
+    
 };
 
 

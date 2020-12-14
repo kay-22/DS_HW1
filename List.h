@@ -36,7 +36,7 @@ namespace list{
         void clear();
         /* returns an iterator to the added node's data */
         iterator pushFront(const T& data);
-        iterator pushAfter(const T& data, const iterator& predecessor);
+        iterator pushAfter(const iterator& predecessor, const T& data);
         iterator pushBack(const T& data);
         /* returns an iterator to the tail of the list */
         iterator back();
@@ -225,7 +225,7 @@ namespace list{
     List<T>::List(const List<T>& other) : head(nullptr), tail(nullptr), size(0){
 
         for (const_iterator it = other.begin(); it != other.end(); it++) {
-            pushFront(*it);
+            pushBack(*it);
         }
 
         assert(size == other.size);
@@ -309,7 +309,7 @@ namespace list{
 
 
     template <typename T>
-    typename List<T>::iterator List<T>::pushAfter(const T& data, const iterator& predecessor){
+    typename List<T>::iterator List<T>::pushAfter(const iterator& predecessor, const T& data){
 
         if (head == nullptr) {
             assert(size==0);

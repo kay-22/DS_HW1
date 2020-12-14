@@ -13,7 +13,7 @@ using list::List;
 using std::cout;
 using std::endl;
 
-bool test_init() {
+bool testAddAndRemove() {   //test 1
     CoursesManager* cmTest = (CoursesManager*)Init();
     
     for (int i = 1; i < 6; i++) {
@@ -21,6 +21,19 @@ bool test_init() {
         return false;
         }
     }
+
+    if (RemoveCourse(cmTest, 3) != SUCCESS) {
+        return false;
+    }
+
+    if (AddCourse(cmTest, 3, 5) != SUCCESS) {
+        return false;
+    }
+
+    if (AddCourse(cmTest, 3, 0) != INVALID_INPUT) {
+        return false;
+    }
+
     return true;
 }
 
@@ -34,7 +47,7 @@ void run_test(std::function<bool()> test, std::string test_name){
 }
 
 int main(){
-    std::function<bool()> tests[NUMBER_OF_TESTS]= {test_init};
+    std::function<bool()> tests[NUMBER_OF_TESTS]= {testAddAndRemove};
     for(int i=0;i<NUMBER_OF_TESTS;++i){
         run_test(tests[i],"Test "+std::to_string(i+1));
     }

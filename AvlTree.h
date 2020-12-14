@@ -98,7 +98,7 @@ namespace avlTree{
         template <typename Functor>
         static void reveresedPostOrder(Node<Key,Data>* root, Functor& handle);
         AvlTree(const AvlTree& other);
-        AvlTree& operator=(const AvlTree& other) = delete;
+        AvlTree& operator=(AvlTree other);
         void clear();
         ~AvlTree();
 
@@ -202,9 +202,7 @@ namespace avlTree{
 
     template  <typename T>
     static inline void swap(T& t1, T& t2){  
-        T temp;
-
-        temp = t1;
+        T temp = t1;
         t1 = t2;
         t2 = temp;
     }
@@ -560,6 +558,15 @@ namespace avlTree{
             void operator()(Node<Key,Data>* node){
                 resTree->assureHight(node);
                 if (currentExtra > 0 && node->subTreeHight == 0){
+                    if (node->parent->left != nullptr){
+                        
+                        if (node->parent->left == node) {           //node is a left son
+                            node->parent->left = nullptr;
+                        }
+                        else { assert(node->parent->right == node); //node is a right son
+                            node->parent->right = nullptr;
+                        }
+                    }
                     delete node;
                     currentExtra--;
                 }
@@ -612,6 +619,15 @@ namespace avlTree{
 
         CloneVertex cloneVertex(root);
         preOrder(other.root, cloneVertex);
+    }
+
+
+
+
+    template<typename Key,typename Data>
+    AvlTree<Key,Data>& AvlTree<Key,Data>::operator=(AvlTree other){
+        swap<Node<Key,Data>*>(this->root, other.root);
+        return *this;
     }
 
 
