@@ -559,7 +559,7 @@ namespace avlTree{
                 resTree->assureHight(node);
                 if (currentExtra > 0 && node->subTreeHight == 0){
                     if (node->parent->left != nullptr){
-                        
+
                         if (node->parent->left == node) {           //node is a left son
                             node->parent->left = nullptr;
                         }
@@ -597,9 +597,13 @@ namespace avlTree{
     
     
     template<typename Key,typename Data>
-    AvlTree<Key,Data>::AvlTree(const AvlTree& other){
-    // assuming that clonedRoot was already cloned before the cloneVertex call
-        
+    AvlTree<Key,Data>::AvlTree(const AvlTree& other){ 
+        if (other.root == nullptr){
+            root = nullptr;
+            return;
+        }
+
+        // assuming that clonedRoot was already cloned before the cloneVertex call
         struct CloneVertex{
             Node<Key,Data>* currentVertex;
             CloneVertex(Node<Key,Data>* clonedRoot) : currentVertex(clonedRoot){}

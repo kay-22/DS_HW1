@@ -101,3 +101,15 @@ StatusType GetMostViewedClasses(void *DS, int numOfClasses, int *courses, int *c
 
     return result;
 }
+
+
+
+
+void Quit(void** DS){
+    if( DS==nullptr ) return;
+    if( *DS==nullptr ){
+        DS=nullptr;
+        return;
+    }
+    delete (CoursesManager*)*DS ;
+}

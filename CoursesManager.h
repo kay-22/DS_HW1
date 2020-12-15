@@ -26,7 +26,7 @@ public:
 
     StatusType GetMostViewedClasses(int numOfClasses, int *courses, int *classes);
 
-    ~CoursesManager();
+    ~CoursesManager()=default;
 };
 
 

@@ -6,62 +6,80 @@
 #include <memory>
 #include <functional>
 
-//static const int NO_COURSE = -1;
+static const int NO_CLASS = 0;
 
 struct Lecture;
 struct Course;
 struct Time;
+struct IntPair;
 
-// linked list, such that every element in it is a linked lists of lectures with time_views = this->time
+
+struct IntPair{
+    int first = 0;
+    int second = 0;
+    explicit IntPair(int first=0, int second=0) : first(first), second(second) {}
+    bool operator<(const IntPair& other) const{
+        if (first < other.first){
+            return true;
+        }
+        else if (first == other.first){
+            if (second < other.second){
+                return true;
+            }
+        }
+        return false;
+    }
+    bool operator==(const IntPair& other) const {
+        return ((first == other.first) && (second == other.second));
+    }
+    bool operator>(const IntPair& other)const {
+        return (!(*this==other) && !(*this < other));
+    }
+    bool operator!=(const IntPair& other) const {
+        return !(*this == other);
+    }
+    bool operator>=(const IntPair& other) const {
+        return !(*this < other);
+    }
+    bool operator<=(const IntPair& other) const {
+        return !(*this > other);
+    }
+
+};
+
+
+// avl tree with representing number "time"
 struct Time {
     int time;
-    list::List<Lecture> lectures;
+    avlTree::AvlTree<IntPair,list::List<Time>::iterator> classes;
+    int numOfClasses;
 
-    explicit Time(int time) : time(time) {}
+    explicit Time(int time,int numOfClasses) : time(time),numOfClasses(numOfClasses) {}
 };
-
-
-
-
-
-//Lecture is a list element that holds an iterator of the current time_views
-struct Lecture {
-    int courseID; //for GetMostViewedClasses
-    int classID;
-    list::List<Time>::iterator currentTime;
-
-    //Lecture() 
-    //    : currentTime(list::List<Time>::const_iterator::iteratorNull()), courseID(NO_COURSE) {}
-
-    Lecture(int courseID, int classID, const list::List<Time>::iterator& currentTime)
-        : courseID(courseID), classID(classID), currentTime(currentTime) {}
-};
-
 
 
 
 
 
 struct Course{
-    avlTree::AvlTree<int,list::List<Lecture>::iterator> lectures;
-    list::List<Time>::iterator maxTime;
+    
+    avlTree::AvlTree<IntPair,list::List<Time>::iterator> classes;
     int numOfClasses;
 
     Course(int courseID, int numOfClasses)
-            : lectures(avlTree::AvlTree<int,list::List<Lecture>::iterator>::semiFullTree(numOfClasses)),
-              maxTime( list::List<Time>::iterator::iteratorNull() ),
+            : classes(avlTree::AvlTree<IntPair,list::List<Time>::iterator>::semiFullTree(numOfClasses)),
               numOfClasses(numOfClasses){
 
-        int i = 0;
-        std::function<void(avlTree::Node<int,list::List<Lecture>::iterator>*)>  assignNodes = 
-            [&i](avlTree::Node<int,list::List<Lecture>::iterator>* node) {
+        IntPair i(courseID,0);
+        std::function<void(avlTree::Node<IntPair,list::List<Time>::iterator>*)>  assignNodes = 
+            [&i](avlTree::Node<IntPair,list::List<Time>::iterator>* node) {
                 node->key = i;
-                node->data = list::List<Lecture>::iterator::iteratorNull();
-                i++;
+                node->data = list::List<Time>::iterator::iteratorNull();
+                i.second++;
             };
 
-    avlTree::AvlTree<int, list::List<Lecture>::iterator>::inOrder(lectures.getRoot(), assignNodes);
-    assert(i == numOfClasses);
+    avlTree::AvlTree<IntPair,list::List<Time>::iterator>::inOrder(classes.getRoot(), assignNodes);
+    assert(i.second == numOfClasses);
     }
     
 };
