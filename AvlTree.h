@@ -543,7 +543,7 @@ namespace avlTree{
     // constructs and returns a semi-full avl tree with
     // default homogeneous (Key,Data) for all nodes
     template <typename Key,typename Data>
-    AvlTree<Key,Data> AvlTree<Key,Data>::semiFullTree(int nodesNum){
+    AvlTree<Key,Data> AvlTree<Key,Data>::semiFullTree(int nodesNum){    
         int hight = closest2Power(nodesNum) - 1;
         AvlTree<Key,Data> result;
         result.insert(Key(),Data());

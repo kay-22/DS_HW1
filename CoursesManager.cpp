@@ -79,6 +79,8 @@ StatusType CoursesManager::WatchClass(int courseID, int classID, int time){
     if (course == nullptr) return FAILURE;
     if (classID +1 > course->numOfClasses) return INVALID_INPUT;
 
+    assert(course->classesTimes.size > classID);
+    course->classesTimes.array[classID] += time;
     AvlTree<IntPair,List<Time>::iterator>& classes = course->classes;    
     //List<Lecture>::iterator& classPtr = *(classes.find(classID));
     List<Time>::iterator& classTime =  *(classes.find(classKey));
@@ -125,7 +127,7 @@ StatusType CoursesManager::TimeViewed(int courseID, int classID, int *timeViewed
     if (course == nullptr) return FAILURE;
     if (classID +1 > course->numOfClasses) return INVALID_INPUT;
 
-    *timeViewed  = (*(course->classes.find(IntPair(courseID, classID))))->time;
+    *timeViewed  = course->classesTimes.array[classID];
 
     return SUCCESS;
 }

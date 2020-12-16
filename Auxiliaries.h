@@ -8,7 +8,6 @@
 
 static const int NO_CLASS = 0;
 
-struct Lecture;
 struct Course;
 struct Time;
 struct IntPair;
@@ -58,17 +57,41 @@ struct Time {
 };
 
 
+struct IntArray{
+    int *array;
+    int size;
 
+    explicit IntArray(int size) : array(new int[size]), size(size){  
+        for (int i = 0; i<size; i++) array[i] = 0;
+    }
+
+    IntArray(const IntArray& other) : array(new int[other.size]){
+        for (int i = 0; i<size; i++) array[i] = other.array[i];
+    }
+
+    IntArray& operator=(IntArray other){
+        int* temp = array;
+        array = other.array;
+        size = other.size;
+        other.array = temp;
+        return *this;
+    }
+
+    ~IntArray(){
+        delete array;
+    }
+};
 
 
 struct Course{
     
     avlTree::AvlTree<IntPair,list::List<Time>::iterator> classes;
     int numOfClasses;
+    IntArray classesTimes;
 
     Course(int courseID, int numOfClasses)
             : classes(avlTree::AvlTree<IntPair,list::List<Time>::iterator>::semiFullTree(numOfClasses)),
-              numOfClasses(numOfClasses){
+              numOfClasses(numOfClasses), classesTimes(numOfClasses){
 
         IntPair i(courseID,0);
         std::function<void(avlTree::Node<IntPair,list::List<Time>::iterator>*)>  assignNodes = 
