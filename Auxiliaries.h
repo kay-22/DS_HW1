@@ -64,7 +64,7 @@ struct Time {
     int numOfClasses;
     avlTree::AvlTree<int, avlTree::AvlTree<int,list::List<Time>::iterator> > courses;
 
-    explicit Time(int time,int numOfClasses) : time(time),numOfClasses(numOfClasses) {}
+    explicit Time(int time,int numOfClasses) : time(time), numOfClasses(numOfClasses) {}
 };
 
 

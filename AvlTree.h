@@ -590,9 +590,9 @@ namespace avlTree{
     AvlTree<Key,Data> AvlTree<Key,Data>::semiFullTree(int nodesNum){    
         int hight = closest2Power(nodesNum) - 1;
         AvlTree<Key,Data> result;
+        result.size = nodesNum;
         if (hight == NO_HIGHT) return result;
         result.insert(Key(),Data());
-        result.size = nodesNum;
 
         expandToFullTree(result.root, hight);
 
@@ -644,10 +644,9 @@ namespace avlTree{
     
     
     template<typename Key,typename Data>
-    AvlTree<Key,Data>::AvlTree(const AvlTree& other){ 
+    AvlTree<Key,Data>::AvlTree(const AvlTree& other) : root(nullptr), size(other.size) { 
         if (other.root == nullptr){
-            root = nullptr;
-            return;
+            return; //this root is already null
         }
 
         // assuming that clonedRoot was already cloned before the cloneVertex call
@@ -678,6 +677,7 @@ namespace avlTree{
     template<typename Key,typename Data>
     AvlTree<Key,Data>& AvlTree<Key,Data>::operator=(AvlTree other){
         swap<Node<Key,Data>*>(this->root, other.root);
+        swap<int>(size, other.size);
         return *this;
     }
 
