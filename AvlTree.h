@@ -590,9 +590,9 @@ namespace avlTree{
     AvlTree<Key,Data> AvlTree<Key,Data>::semiFullTree(int nodesNum){    
         int hight = closest2Power(nodesNum) - 1;
         AvlTree<Key,Data> result;
-        result.size = nodesNum;
         if (hight == NO_HIGHT) return result;
         result.insert(Key(),Data());
+        result.size = nodesNum;
 
         expandToFullTree(result.root, hight);
 
@@ -652,7 +652,7 @@ namespace avlTree{
         // assuming that clonedRoot was already cloned before the cloneVertex call
         struct CloneVertex{
             Node<Key,Data>* currentVertex;
-            CloneVertex(Node<Key,Data>* clonedRoot) : currentVertex(clonedRoot){}
+            CloneVertex(Node<Key,Data>* clonedRoot) : currentVertex(clonedRoot){}//----------bug here: currentVertex always stays the same
             void operator()(Node<Key,Data>* node){
                 if (node->left != nullptr) currentVertex->left = new Node<Key,Data>
                                                 (node->left->key,node->left->data, currentVertex, 
