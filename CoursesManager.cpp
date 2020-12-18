@@ -29,7 +29,7 @@ bool CoursesManager::AddCourse (int courseID, int numOfClasses){
 
     AddClasses addClasses(&timeAxis);
     Course newCourse(numOfClasses,timeAxis);
-    courses.insert(courseID, newCourse);
+    if (courses.insert(courseID, newCourse) == false) return false;
 
     AvlTree<int,List<Time>::iterator> classes = AvlTree<int,List<Time>::iterator>::semiFullTree(numOfClasses);
     AvlTree<int,List<Time>::iterator>::inOrder(classes.getRoot(), addClasses);
@@ -71,7 +71,7 @@ bool CoursesManager::RemoveCourse(int courseID){
         List<Time>::iterator& currentTime = target->times[i];
         AvlTree<int,AvlTree<int,List<Time>::iterator>>& currentCoursesInTime = currentTime->courses;
         AvlTree<int,List<Time>::iterator>* courseToRemove = currentCoursesInTime.find(courseID);
-        
+
         int numOfClassesInTime = (courseToRemove != nullptr)? courseToRemove->getSize() : 0;
         currentCoursesInTime.remove(courseID);
         currentTime->numOfClasses -= numOfClassesInTime;

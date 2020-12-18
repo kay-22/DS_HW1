@@ -10,7 +10,7 @@ set(MTM_FLAGS_RELEASE "${MTM_FLAGS_DEBUG} -DNDEBUG")
 
 set(CMAKE_CXX_FLAGS ${MTM_FLAGS_DEBUG})
 
-add_executable(HW1 AvlTree.h temp.cpp library.h library.cpp List.h Exceptions.h Exceptions.cpp Auxiliaries.h CoursesManager.cpp CoursesManager.h)
+add_executable(HW1 main.cpp AvlTree.h library.h library.cpp List.h Exceptions.h Exceptions.cpp Auxiliaries.h CoursesManager.cpp CoursesManager.h)
 add_executable(AVLTest AvlTree.h tests/AVLTreeTest.cpp Exceptions.h Exceptions.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
