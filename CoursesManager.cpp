@@ -2,6 +2,7 @@
 
 using avlTree::AvlTree;
 using list::List;
+using std::function;
 
 
 
@@ -17,22 +18,23 @@ CoursesManager::CoursesManager() {
 bool CoursesManager::AddCourse (int courseID, int numOfClasses){
     
     struct AddClasses {
-        int courseID;
+        int i=0;
         List<Time>* timeAxis;
-        AddClasses(int courseID, List<Time>* timeAxis) : courseID(courseID), timeAxis(timeAxis) {}
-        void operator()(avlTree::Node<IntPair,List<Time>::iterator>* node){
+        AddClasses(List<Time>* timeAxis) : timeAxis(timeAxis) {}
+        void operator()(avlTree::Node<int,List<Time>::iterator>* node){
+            node->key = i++;
             node->data = timeAxis->begin();
-            timeAxis->begin()->classes.insert(node->key,node->data);
-            ++(timeAxis->begin()->numOfClasses);
         }
     };
 
-    AddClasses addClasses(courseID, &timeAxis);
-    Course newCourse(courseID, numOfClasses);
-    AvlTree<IntPair,List<Time>::iterator>::inOrder(newCourse.classes.getRoot(), addClasses);
-
-    //newCourse.maxTime = timeAxis.begin();
+    AddClasses addClasses(&timeAxis);
+    Course newCourse(numOfClasses,timeAxis);
     courses.insert(courseID, newCourse);
+
+    AvlTree<int,List<Time>::iterator> classes = AvlTree<int,List<Time>::iterator>::semiFullTree(numOfClasses);
+    AvlTree<int,List<Time>::iterator>::inOrder(classes.getRoot(), addClasses);
+    timeAxis.begin()->courses.insert(courseID,classes);
+    timeAxis.begin()->numOfClasses += numOfClasses;
     return true;
 }
 
@@ -46,24 +48,37 @@ bool CoursesManager::RemoveCourse(int courseID){
 
     if (target == nullptr) return false;
 
-    struct RemoveFromTimeAxis{
-        List<Time>*const timeAxis;
-        RemoveFromTimeAxis(List<Time>* timeAxis) : timeAxis(timeAxis) {}
-        void operator()(avlTree::Node<IntPair,List<Time>::iterator>* node){
-            assert(node->data != nullptr);
-            List<Time>::iterator currentTime  = node->data;
-            AvlTree<IntPair,List<Time>::iterator>& classes = currentTime->classes;
-            classes.remove(node->key);
-            --(currentTime->numOfClasses);
-            if (classes.getRoot() == nullptr && currentTime->time != 0) {
-                timeAxis->remove(currentTime);
-            }
-        }
-    };
+    // struct RemoveFromTimeAxis{
+    //     List<Time>*const timeAxis;
+    //     RemoveFromTimeAxis(List<Time>* timeAxis) : timeAxis(timeAxis) {}
+    //     void operator()(avlTree::Node<IntPair,List<Time>::iterator>* node){
+    //         assert(node->data != nullptr);
+    //         List<Time>::iterator currentTime  = node->data;
+    //         AvlTree<IntPair,List<Time>::iterator>& classes = currentTime->classes;
+    //         classes.remove(node->key);
+    //         --(currentTime->numOfClasses);
+    //         if (classes.getRoot() == nullptr && currentTime->time != 0) {
+    //             timeAxis->remove(currentTime);
+    //         }
+    //     }
+    // };
     
-    RemoveFromTimeAxis removeFromTimeAxis(&timeAxis);
-    AvlTree<IntPair,List<Time>::iterator>::postOrder(target->classes.getRoot(), removeFromTimeAxis);
+    // RemoveFromTimeAxis removeFromTimeAxis(&timeAxis);
+    // AvlTree<IntPair,List<Time>::iterator>::postOrder(target->classes.getRoot(), removeFromTimeAxis);
     //target->classes.clear(); make sure it doesn't leak
+
+    for (int i = 0; i < target->numOfClasses; ++i) {
+        List<Time>::iterator& currentTime = target->times[i];
+        AvlTree<int,AvlTree<int,List<Time>::iterator>>& currentCoursesInTime = currentTime->courses;
+        AvlTree<int,List<Time>::iterator>* courseToRemove = currentCoursesInTime.find(courseID);
+        
+        int numOfClassesInTime = (courseToRemove != nullptr)? courseToRemove->getSize() : 0;
+        currentCoursesInTime.remove(courseID);
+        currentTime->numOfClasses -= numOfClassesInTime;
+        if (currentTime->numOfClasses == 0 && currentTime->time != 0) {
+            timeAxis.remove(currentTime);
+        }
+    }
     courses.remove(courseID);
 
     return true;
@@ -74,16 +89,15 @@ bool CoursesManager::RemoveCourse(int courseID){
 
 
 StatusType CoursesManager::WatchClass(int courseID, int classID, int time){
-    IntPair classKey(courseID,classID);
     Course* course = this->courses.find(courseID);
     if (course == nullptr) return FAILURE;
     if (classID +1 > course->numOfClasses) return INVALID_INPUT;
 
-    assert(course->classesTimes.size > classID);
-    course->classesTimes.array[classID] += time;
-    AvlTree<IntPair,List<Time>::iterator>& classes = course->classes;    
+    assert(course->numOfClasses > classID);
+    //course->times[classID] += time;
+    //AvlTree<IntPair,List<Time>::iterator>& classes = course->classes;    
     //List<Lecture>::iterator& classPtr = *(classes.find(classID));
-    List<Time>::iterator& classTime =  *(classes.find(classKey));
+    List<Time>::iterator& classTime =  course->times[classID];
     List<Time>::iterator timeIterator = classTime;
 
     for (int i = 0; i < time; i++) {
@@ -106,13 +120,21 @@ StatusType CoursesManager::WatchClass(int courseID, int classID, int time){
     }
 
     assert(timeIterator != timeAxis.end());
-    timeIterator->classes.insert(classKey, timeIterator);
+    //timeIterator->classes.insert(classKey, timeIterator);
+    if (timeIterator->courses.find(courseID) == nullptr){
+        timeIterator->courses.insert(courseID, AvlTree<int,List<Time>::iterator>());
+    } 
+    timeIterator->courses.find(courseID)->insert(classID, timeIterator);
     ++(timeIterator->numOfClasses);
-    classTime->classes.remove(classKey);
-    --(classTime->numOfClasses);
-    if (classTime->classes.getRoot() == nullptr && classTime->time != 0) {
+    classTime->courses.find(courseID)->remove(classID);
+    if (classTime->courses.find(courseID)->getSize() == 0){
+        classTime->courses.remove(courseID);
+    }
+    if (classTime->courses.getSize() == 0 && classTime->time != 0) {
         timeAxis.remove(classTime);
     }
+    --(classTime->numOfClasses);
+    ++(timeIterator->numOfClasses);
     classTime = timeIterator;
     //if (course->maxTime->time < classTime->time) course->maxTime = classTime;
 
@@ -127,7 +149,7 @@ StatusType CoursesManager::TimeViewed(int courseID, int classID, int *timeViewed
     if (course == nullptr) return FAILURE;
     if (classID +1 > course->numOfClasses) return INVALID_INPUT;
 
-    *timeViewed  = course->classesTimes.array[classID];
+    *timeViewed  = course->times[classID]->time;
 
     return SUCCESS;
 }
@@ -136,33 +158,37 @@ StatusType CoursesManager::TimeViewed(int courseID, int classID, int *timeViewed
 
 
 StatusType CoursesManager::GetMostViewedClasses(int numOfClasses, int* coursesOutput, int* classesOutput){
+    
+    MostViewedOut out(coursesOutput, classesOutput);
+    int stepsLeft = numOfClasses;
 
-    struct GetView{
-        const int numOfClasses;
-        int *const coursesOutput;
-        int *const classesOutput;
-        int i = 0;
-        GetView(int numOfClasses,int* coursesOutput,int* classesOutput):
-                numOfClasses(numOfClasses),coursesOutput(coursesOutput),classesOutput(classesOutput){}
-        void operator()(avlTree::Node<IntPair,List<Time>::iterator>* node){
-            if( i < numOfClasses ){
-                coursesOutput[i] = node->key.first;
-                classesOutput[i++] = node->key.second;
-                assert( i < numOfClasses );
-            }
+    function<void(avlTree::Node<int,AvlTree<int,List<Time>::iterator>>*)>  getCourse = 
+    [&out, &numOfClasses, &stepsLeft](avlTree::Node<int,AvlTree<int,List<Time>::iterator>>* courseNode){
+        function<void(avlTree::Node<int,List<Time>::iterator>*)>  getView = 
+        [&out, &courseNode, &numOfClasses](avlTree::Node<int,List<Time>::iterator>* classNode){
+            assert( out.i < numOfClasses );
+            out.courses[out.i] = courseNode->key;
+            out.classes[out.i++] = classNode->key;
+        };
+
+        if (courseNode->data.getSize() < stepsLeft) {
+            avlTree::AvlTree<int,list::List<Time>::iterator>::inOrder(courseNode->data.getRoot(), getView);
+            stepsLeft -= courseNode->data.getSize();
+        }
+        else{
+            courseNode->data.stepByStepInOrder(stepsLeft, getView);
+            stepsLeft = 0;
         }
     };
-    GetView getView(numOfClasses,coursesOutput,classesOutput);
-    
 
     List<Time>::iterator timeIterator = timeAxis.back();
     while (timeIterator != nullptr) { 
-        AvlTree<IntPair,List<Time>::iterator>::inOrder(timeIterator->classes.getRoot(),getView);
-        if( getView.i == numOfClasses-1 ) break;
+        timeIterator->courses.stepByStepInOrder(stepsLeft, getCourse);
+        if( stepsLeft <= 0 ) break;
         timeIterator = timeAxis.getPrevious(timeIterator);
     }
     
     
-    if( getView.i < numOfClasses-1 ) return FAILURE;
+    if( stepsLeft > 0 ) return FAILURE;
     return SUCCESS;
 }

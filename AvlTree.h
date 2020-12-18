@@ -6,6 +6,7 @@
 #include <iostream>
 #include <math.h>
 #include "Exceptions.h"
+#include "List.h"
 
 static const int GO_RIGHT = -2;
 static const int GO_LEFT = 2;
@@ -87,6 +88,7 @@ namespace avlTree{
         
         
         // Non-interface part:
+        int getSize() {return size;}
         Node<Key,Data>*const getRoot() { return root; }
         static AvlTree semiFullTree(int nodesNum);
         template <typename Functor>
@@ -94,9 +96,11 @@ namespace avlTree{
         template <typename Functor>
         static void preOrder(Node<Key,Data>* root,  Functor& handle);
         template <typename Functor>
-        static void inOrder(Node<Key,Data>* root,  Functor& handle);
+        static void inOrder(Node<Key,Data>* root, Functor& handle);
         template <typename Functor>
         static void reveresedPostOrder(Node<Key,Data>* root, Functor& handle);
+        template <typename Functor>
+        bool stepByStepInOrder(int& steps, Functor& handle);
         AvlTree(const AvlTree& other);
         AvlTree& operator=(AvlTree other);
         void clear();
@@ -105,7 +109,7 @@ namespace avlTree{
         
         private:
         Node<Key,Data>* root;
-
+        int size;
         
 
         /* returns the required node or null if failed. last <- last checked node */
@@ -123,7 +127,7 @@ namespace avlTree{
         void rotateLeft(Node<Key,Data>* pivotSon);
         void rotateRight(Node<Key,Data>* pivotSon);
         /* expands a single node tree to full tree */
-        static void expendToFullTree(Node<Key,Data>* node, int hight);
+        static void expandToFullTree(Node<Key,Data>* node, int hight);
 
         friend std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree){
             struct PrintData{
@@ -131,7 +135,8 @@ namespace avlTree{
                     std::cout << node->data << " " << balanceOf(node) << " " << node->subTreeHight << std::endl;
                 }
             };
-            AvlTree<Key,Data>::postOrder(tree.root, PrintData());
+            PrintData printData;
+            AvlTree<Key,Data>::inOrder(tree.root, printData);
 
             return os;
     }
@@ -142,7 +147,7 @@ namespace avlTree{
 
     //by default: create an empty new AvlTree
     template  <typename Key,typename Data>
-    AvlTree<Key,Data>::AvlTree(Node<Key,Data>* root) : root(root) {}
+    AvlTree<Key,Data>::AvlTree(Node<Key,Data>* root) : root(root), size(0) {}
 
 
 
@@ -367,6 +372,42 @@ namespace avlTree{
 
     template <typename Key,typename Data>
     template <typename Functor>
+    bool AvlTree<Key,Data>::stepByStepInOrder(int& steps, Functor& handle){
+        if (steps < 0) return false;
+        else if (steps == 0) return true;
+
+        list::List<Node<Key,Data>*> stack;
+        Node<Key,Data>** current = &root;
+
+        int counter = 0;
+        //stack.pushFront(&root);
+        do{
+            if (*current != nullptr){
+                stack.pushFront(*current);
+                current = &((*current)->left);
+            }
+            else{
+                typename list::List<Node<Key,Data>*>::iterator topIt = stack.begin();
+                handle(*topIt);
+                current = &((*topIt)->right);
+                stack.remove(topIt);
+                ++counter;  
+            }
+        }
+        while (stack.getSize() !=0 && counter < steps);
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+    template <typename Key,typename Data>
+    template <typename Functor>
     void AvlTree<Key,Data>::preOrder(Node<Key,Data>* root, Functor& handle){
         if(root == nullptr) return;
         handle(root);
@@ -509,7 +550,8 @@ namespace avlTree{
             nodeOnTrack = nodeOnTrack->parent;
         //}while ( nodeOnTrack->parent );
         }while ( nodeOnTrack );
-            
+        
+        ++size;
         return true;   
     }
 
@@ -525,6 +567,8 @@ namespace avlTree{
 
         if( !exists ) return false;
         Node<Key,Data>* nodeOnTrack = binaryRemove(exists);
+
+        --size;
 
         if (nodeOnTrack == nullptr) return true; // incase root was removed and was the only node
 
@@ -546,9 +590,11 @@ namespace avlTree{
     AvlTree<Key,Data> AvlTree<Key,Data>::semiFullTree(int nodesNum){    
         int hight = closest2Power(nodesNum) - 1;
         AvlTree<Key,Data> result;
+        if (hight == NO_HIGHT) return result;
         result.insert(Key(),Data());
+        result.size = nodesNum;
 
-        expendToFullTree(result.root, hight);
+        expandToFullTree(result.root, hight);
 
         struct RemoveExtraLeaves {
             AvlTree<Key,Data>* resTree;
@@ -584,13 +630,14 @@ namespace avlTree{
 
 
     template <typename Key,typename Data>
-    void AvlTree<Key,Data>::expendToFullTree(Node<Key,Data>* node, int hight){
+    void AvlTree<Key,Data>::expandToFullTree(Node<Key,Data>* node, int hight){
         if (hight <= 0) return;
         node->left = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
         node->right = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
 
-        expendToFullTree(node->left, hight-1);
-        expendToFullTree(node->right, hight-1);
+
+        expandToFullTree(node->left, hight-1);
+        expandToFullTree(node->right, hight-1);
     }
 
 
