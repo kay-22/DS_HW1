@@ -125,7 +125,7 @@ StatusType CoursesManager::WatchClass(int courseID, int classID, int time){
         timeIterator->courses.insert(courseID, AvlTree<int,List<Time>::iterator>());
     } 
     timeIterator->courses.find(courseID)->insert(classID, timeIterator);
-    ++(timeIterator->numOfClasses);
+    //++(timeIterator->numOfClasses);
     classTime->courses.find(courseID)->remove(classID);
     if (classTime->courses.find(courseID)->getSize() == 0){
         classTime->courses.remove(courseID);
