@@ -7,7 +7,7 @@
 #include "CoursesManager.h"
 #include "library.h"
 
-#define NUMBER_OF_TESTS 2
+#define NUMBER_OF_TESTS 3
 
 using list::List;
 using std::cout;
@@ -52,6 +52,47 @@ bool testIntPair() {
     return true;
 }
 
+
+
+
+//test 3
+bool testInOrderWithSteps() {
+    avlTree::AvlTree<int,int> tree = avlTree::AvlTree<int,int>::semiFullTree(0);
+
+        struct AssignNode {
+        int i=0;
+        void operator()(avlTree::Node<int,int>* node){
+            node->key = ++i;
+            node->data = i;
+        }
+    };
+
+    //int a = 4;
+    int b = -4;
+    int c = 0;
+    int d = 6;
+    
+    AssignNode assignNode;
+    //if(tree.stepByStepInOrder(a, assignNode) != false) return false;
+    if(tree.stepByStepInOrder(b, assignNode) != false) return false;
+   
+    tree.stepByStepInOrder(c, assignNode);
+
+    avlTree::AvlTree<int,int> tree2 = avlTree::AvlTree<int,int>::semiFullTree(6);
+    tree2.stepByStepInOrder(d, assignNode);
+
+    cout << tree << endl;
+    cout << tree2 << endl;
+
+    return true;
+
+}
+
+
+
+
+
+
 void run_test(std::function<bool()> test, std::string test_name){
     if(!test()){
         std::cout<<test_name<<" FAILED."<<std::endl;
@@ -62,7 +103,7 @@ void run_test(std::function<bool()> test, std::string test_name){
 }
 
 int main(){
-    std::function<bool()> tests[NUMBER_OF_TESTS]= {testAddAndRemove, testIntPair};
+    std::function<bool()> tests[NUMBER_OF_TESTS]= {testAddAndRemove, testIntPair, testInOrderWithSteps};
     for(int i=0;i<NUMBER_OF_TESTS;++i){
         run_test(tests[i],"Test "+std::to_string(i+1));
     }
