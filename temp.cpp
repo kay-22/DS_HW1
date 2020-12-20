@@ -7,7 +7,7 @@
 #include "CoursesManager.h"
 #include "library.h"
 
-#define NUMBER_OF_TESTS 3
+#define NUMBER_OF_TESTS 2
 
 using list::List;
 using std::cout;
@@ -38,24 +38,9 @@ bool testAddAndRemove() {
     return true;
 }
 
+
+
 //test 2
-bool testIntPair() {        
-    IntPair a(1,2);
-    IntPair b(2,1);
-    IntPair c(2,0);
-    IntPair d(2,0);
-
-    assert(b>a && b>c && c>a && a<c && c<b && a<b && a!=b && c==d);
-    assert(c>=d && c<=d && d<= c && d >= c);
-    assert(b>=c && b>=a && c>=a && c<=b && a<=b && a<=c);
-
-    return true;
-}
-
-
-
-
-//test 3
 bool testInOrderWithSteps() {
     avlTree::AvlTree<int,int> tree = avlTree::AvlTree<int,int>::semiFullTree(0);
 
@@ -102,12 +87,18 @@ void run_test(std::function<bool()> test, std::string test_name){
 
 }
 
-int main(){
-    std::function<bool()> tests[NUMBER_OF_TESTS]= {testAddAndRemove, testIntPair, testInOrderWithSteps};
-    for(int i=0;i<NUMBER_OF_TESTS;++i){
-        run_test(tests[i],"Test "+std::to_string(i+1));
-    }
-}
+// int main(){
+//     std::function<bool()> tests[NUMBER_OF_TESTS]= {testAddAndRemove, testInOrderWithSteps};
+//     for(int i=0;i<NUMBER_OF_TESTS;++i){
+//         run_test(tests[i],"Test "+std::to_string(i+1));
+//     }
+// }
+
+
+
+
+
+
 // int main(){
 //     //AvlTree<int,int> a();
 //     List<int> list;

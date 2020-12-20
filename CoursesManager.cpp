@@ -176,14 +176,14 @@ StatusType CoursesManager::GetMostViewedClasses(int numOfClasses, int* coursesOu
             stepsLeft -= courseNode->data.getSize();
         }
         else{
-            AvlTree<int,List<Time>::iterator>::climbingInOrder(courseNode->data.getRoot(), getView, stepsLeft);
+            AvlTree<int,List<Time>::iterator>::climbingInOrder(courseNode->data.getMinNode(), getView, stepsLeft);
             stepsLeft = 0;
         }
     };
 
     List<Time>::iterator timeIterator = timeAxis.back();
     while (timeIterator != nullptr) { 
-        AvlTree<int,AvlTree<int,List<Time>::iterator>>::climbingInOrder(timeIterator->courses.getRoot(), handleCourse, stepsLeft);
+        AvlTree<int,AvlTree<int,List<Time>::iterator>>::climbingInOrder(timeIterator->courses.getMinNode(), handleCourse, stepsLeft);
         if( stepsLeft <= 0 ) break;
         timeIterator = timeAxis.getPrevious(timeIterator);
     }
