@@ -11,6 +11,9 @@
 static const int GO_RIGHT = -2;
 static const int GO_LEFT = 2;
 static const int  NO_HIGHT = -1;
+// static const char NO_SIDE = 0;
+// static const char RIGHT = 1;
+// static const char LEFT = 2;
 
 namespace avlTree{
 
@@ -89,6 +92,7 @@ namespace avlTree{
         
         // Non-interface part:
         int getSize() {return size;}
+        Node<Key,Data>*const getMinNode() { return minNode; }
         Node<Key,Data>*const getRoot() { return root; }
         static AvlTree semiFullTree(int nodesNum);
         template <typename Functor>
@@ -98,10 +102,13 @@ namespace avlTree{
         template <typename Functor>
         static void inOrder(Node<Key,Data>* root, Functor& handle);
         template <typename Functor>
+        static void climbingInOrder(Node<Key,Data>* smallestLeaf, Functor& handle, int& steps);
+        template <typename Functor>
         static void reveresedPostOrder(Node<Key,Data>* root, Functor& handle);
         template <typename Functor>
-        bool stepByStepInOrder(int& steps, Functor& handle);
+        bool static stepByStepInOrder(Node<Key,Data>* root, int& steps, Functor& handle);
         AvlTree(const AvlTree& other);
+        void copyAux(Node<Key,Data>* node, const Node<Key,Data>* const otherNode);
         AvlTree& operator=(AvlTree other);
         void clear();
         ~AvlTree();
@@ -109,6 +116,7 @@ namespace avlTree{
         
         private:
         Node<Key,Data>* root;
+        Node<Key,Data>* minNode;
         int size;
         
 
@@ -128,6 +136,8 @@ namespace avlTree{
         void rotateRight(Node<Key,Data>* pivotSon);
         /* expands a single node tree to full tree */
         static void expandToFullTree(Node<Key,Data>* node, int hight);
+        /* updates the pointer of the minNode to the most left leaf*/
+        void updateMinNode();
 
         friend std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree){
             struct PrintData{
@@ -147,7 +157,7 @@ namespace avlTree{
 
     //by default: create an empty new AvlTree
     template  <typename Key,typename Data>
-    AvlTree<Key,Data>::AvlTree(Node<Key,Data>* root) : root(root), size(0) {}
+    AvlTree<Key,Data>::AvlTree(Node<Key,Data>* root) : root(root), minNode(root), size(0) {}
 
 
 
@@ -372,7 +382,7 @@ namespace avlTree{
 
     template <typename Key,typename Data>
     template <typename Functor>
-    bool AvlTree<Key,Data>::stepByStepInOrder(int& steps, Functor& handle){
+    bool AvlTree<Key,Data>::stepByStepInOrder(Node<Key,Data>* root, int& steps, Functor& handle){
         if (steps < 0) return false;
         else if (steps == 0) return true;
 
@@ -398,6 +408,25 @@ namespace avlTree{
 
         return true;
     }
+
+    
+
+
+
+    template <typename Key,typename Data>
+    template <typename Functor>
+    void AvlTree<Key,Data>::climbingInOrder(Node<Key,Data>* smallestLeaf, Functor& handle, int& steps){
+        if (smallestLeaf == nullptr) return;
+
+        Node<Key,Data>* current = smallestLeaf;
+        while (current != nullptr && steps > 0) {
+            handle(current);
+            --steps;
+            stepByStepInOrder(current->right, steps, handle);
+            current = current->parent;
+        }
+    }
+
 
 
 
@@ -552,6 +581,7 @@ namespace avlTree{
         }while ( nodeOnTrack );
         
         ++size;
+        updateMinNode();
         return true;   
     }
 
@@ -570,7 +600,10 @@ namespace avlTree{
 
         --size;
 
-        if (nodeOnTrack == nullptr) return true; // incase root was removed and was the only node
+        if (nodeOnTrack == nullptr){    // incase root was removed and was the only node
+            updateMinNode();
+            return true; 
+        } 
 
         do{ //assureHight(nodeOnTrack);
             assureBalance(nodeOnTrack);//  <--should also check succsess
@@ -578,6 +611,7 @@ namespace avlTree{
         //}while ( nodeOnTrack->parent );
         }while ( nodeOnTrack );
 
+        updateMinNode();
         return true;
     }
 
@@ -590,6 +624,7 @@ namespace avlTree{
     AvlTree<Key,Data> AvlTree<Key,Data>::semiFullTree(int nodesNum){    
         int hight = closest2Power(nodesNum) - 1;
         AvlTree<Key,Data> result;
+        result.updateMinNode();
         if (hight == NO_HIGHT) return result;
         result.insert(Key(),Data());
         result.size = nodesNum;
@@ -623,6 +658,7 @@ namespace avlTree{
         RemoveExtraLeaves removeExtraLeaves(&result, extraLeaves);
         reveresedPostOrder(result.root, removeExtraLeaves);
 
+        result.updateMinNode();
         return result;
     }
 
@@ -641,35 +677,84 @@ namespace avlTree{
     }
 
 
+
+
+    template <typename Key,typename Data>
+    void AvlTree<Key,Data>::updateMinNode(){
+        if (root == nullptr) {
+            minNode = nullptr;
+            return;
+        }
+
+        Node<Key,Data>* current = root;
+        while (current->left != nullptr) {
+            current = current->left;
+        }
+
+        minNode = current;
+    }
+
+
+
+
+
     
     
     template<typename Key,typename Data>
-    AvlTree<Key,Data>::AvlTree(const AvlTree& other) : root(nullptr), size(other.size) { 
+    AvlTree<Key,Data>::AvlTree(const AvlTree& other) : root(nullptr), minNode(nullptr), size(other.size) { 
         if (other.root == nullptr){
-            return; //this root is already null
+            return; //this root and minNode are already null
         }
-
-        // assuming that clonedRoot was already cloned before the cloneVertex call
-        struct CloneVertex{
-            Node<Key,Data>* currentVertex;
-            CloneVertex(Node<Key,Data>* clonedRoot) : currentVertex(clonedRoot){}//----------bug here: currentVertex always stays the same
-            void operator()(Node<Key,Data>* node){
-                if (node->left != nullptr) currentVertex->left = new Node<Key,Data>
-                                                (node->left->key,node->left->data, currentVertex, 
-                                                nullptr,nullptr, node->left->subTreeHight);
-
-                if (node->right != nullptr) currentVertex->right = new Node<Key,Data>
-                                                (node->right->key,node->right->data, currentVertex, 
-                                                nullptr,nullptr, node->right->subTreeHight);
-            }  
-        };
 
         root = new Node<Key,Data>(other.root->key, other.root->data, 
                         nullptr, nullptr, nullptr, other.root->subTreeHight);
+        copyAux(root, other.root);
+        // assuming that clonedRoot was already cloned before the cloneVertex call
+        // struct CloneVertex{
+        //     Node<Key,Data>* currentVertex;
+        //     CloneVertex(Node<Key,Data>* clonedRoot) : currentVertex(clonedRoot){}//----------bug here: currentVertex always stays the same
+        //     void operator()(Node<Key,Data>* node){
+        //         if (node->left != nullptr) currentVertex->left = new Node<Key,Data>
+        //                                         (node->left->key,node->left->data, currentVertex, 
+        //                                         nullptr,nullptr, node->left->subTreeHight);
 
-        CloneVertex cloneVertex(root);
-        preOrder(other.root, cloneVertex);
+        //         if (node->right != nullptr) currentVertex->right = new Node<Key,Data>
+        //                                         (node->right->key,node->right->data, currentVertex, 
+        //                                         nullptr,nullptr, node->right->subTreeHight);
+        //     }  
+        // };
+
+        // root = new Node<Key,Data>(other.root->key, other.root->data, 
+        //                 nullptr, nullptr, nullptr, other.root->subTreeHight);
+
+        // CloneVertex cloneVertex(root);
+        // preOrder(other.root, cloneVertex);
     }
+
+
+
+
+
+    
+    template<typename Key,typename Data>
+    void AvlTree<Key,Data>::copyAux(Node<Key,Data>* node, const Node<Key,Data>* const otherNode){
+        if (otherNode == nullptr) {
+            assert(node == nullptr);
+            return;
+        }
+
+        if (otherNode->left != nullptr) node->left = new Node<Key,Data>
+                                        (otherNode->left->key, otherNode->left->data, node, 
+                                        nullptr,nullptr, otherNode->left->subTreeHight);
+        if (otherNode->right != nullptr) node->right = new Node<Key,Data>
+                                        (otherNode->right->key, otherNode->right->data, node, 
+                                        nullptr,nullptr, otherNode->right->subTreeHight);
+
+        copyAux(node->left, otherNode->left);
+        copyAux(node->right, otherNode->right);
+    }
+
+
 
 
 
