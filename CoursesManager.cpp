@@ -162,7 +162,7 @@ StatusType CoursesManager::GetMostViewedClasses(int numOfClasses, int* coursesOu
     MostViewedOut out(coursesOutput, classesOutput);
     int stepsLeft = numOfClasses;
 
-    function<void(avlTree::Node<int,AvlTree<int,List<Time>::iterator>>*)>  getCourse = 
+    function<void(avlTree::Node<int,AvlTree<int,List<Time>::iterator>>*)>  handleCourse = 
     [&out, &numOfClasses, &stepsLeft](avlTree::Node<int,AvlTree<int,List<Time>::iterator>>* courseNode){
         function<void(avlTree::Node<int,List<Time>::iterator>*)>  getView = 
         [&out, &courseNode, &numOfClasses](avlTree::Node<int,List<Time>::iterator>* classNode){
@@ -176,14 +176,14 @@ StatusType CoursesManager::GetMostViewedClasses(int numOfClasses, int* coursesOu
             stepsLeft -= courseNode->data.getSize();
         }
         else{
-            courseNode->data.stepByStepInOrder(stepsLeft, getView);
+            AvlTree<int,List<Time>::iterator>::climbingInOrder(courseNode->data.getRoot(), getView, stepsLeft);
             stepsLeft = 0;
         }
     };
 
     List<Time>::iterator timeIterator = timeAxis.back();
     while (timeIterator != nullptr) { 
-        timeIterator->courses.stepByStepInOrder(stepsLeft, getCourse);
+        AvlTree<int,AvlTree<int,List<Time>::iterator>>::climbingInOrder(timeIterator->courses.getRoot(), handleCourse, stepsLeft);
         if( stepsLeft <= 0 ) break;
         timeIterator = timeAxis.getPrevious(timeIterator);
     }

@@ -15,38 +15,38 @@ struct GetCourse;
 struct MostViewedOut;
 
 
-struct IntPair{
-    int first = 0;
-    int second = 0;
-    explicit IntPair(int first=0, int second=0) : first(first), second(second) {}
-    bool operator<(const IntPair& other) const{
-        if (first < other.first){
-            return true;
-        }
-        else if (first == other.first){
-            if (second < other.second){
-                return true;
-            }
-        }
-        return false;
-    }
-    bool operator==(const IntPair& other) const {
-        return ((first == other.first) && (second == other.second));
-    }
-    bool operator>(const IntPair& other)const {
-        return (!(*this==other) && !(*this < other));
-    }
-    bool operator!=(const IntPair& other) const {
-        return !(*this == other);
-    }
-    bool operator>=(const IntPair& other) const {
-        return !(*this < other);
-    }
-    bool operator<=(const IntPair& other) const {
-        return !(*this > other);
-    }
+// struct IntPair{
+//     int first = 0;
+//     int second = 0;
+//     explicit IntPair(int first=0, int second=0) : first(first), second(second) {}
+//     bool operator<(const IntPair& other) const{
+//         if (first < other.first){
+//             return true;
+//         }
+//         else if (first == other.first){
+//             if (second < other.second){
+//                 return true;
+//             }
+//         }
+//         return false;
+//     }
+//     bool operator==(const IntPair& other) const {
+//         return ((first == other.first) && (second == other.second));
+//     }
+//     bool operator>(const IntPair& other)const {
+//         return (!(*this==other) && !(*this < other));
+//     }
+//     bool operator!=(const IntPair& other) const {
+//         return !(*this == other);
+//     }
+//     bool operator>=(const IntPair& other) const {
+//         return !(*this < other);
+//     }
+//     bool operator<=(const IntPair& other) const {
+//         return !(*this > other);
+//     }
 
-};
+// };
 
 
 // // avl tree with representing number "time"
