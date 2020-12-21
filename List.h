@@ -286,7 +286,7 @@ namespace list{
     typename List<T>::iterator List<T>::pushFront(const T& data){
        // Node<T>* temp = head;
         //Node<T>* prev = nullptr;
-        Node<T>* node = new Node<T>(data, head);
+        Node<T>* node = new Node<T>(data);
 
         if (head == nullptr) {
             assert(size == 0);
@@ -341,7 +341,7 @@ namespace list{
     typename List<T>::iterator List<T>::pushBack(const T& data){
         // Node<T>* temp = head;
         //Node<T>* prev = nullptr;
-        Node<T>* node = new Node<T>(data, head);
+        Node<T>* node = new Node<T>(data);
 
         if (head == nullptr) {
             assert(size == 0);
