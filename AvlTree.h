@@ -143,7 +143,7 @@ namespace avlTree{
         Node<Key,Data>*const getMinNode() { return minNode; }
         Node<Key,Data>*const getRoot() { return root; }
 
-        friend std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree);
+        //friend std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree);
         AvlTree(const AvlTree& other);
         AvlTree& operator=(AvlTree other);
 
@@ -443,12 +443,15 @@ namespace avlTree{
     bool AvlTree<Key,Data>::stepByStepInOrder(Node<Key,Data>* root, int& steps, Functor& handle){
         if (steps < 0) return false;
         else if (steps == 0) return true;
+        else if (root == nullptr) return true;
 
         list::List<Node<Key,Data>*> stack;
         Node<Key,Data>** current = &root;
 
         int counter = 0;
         //stack.pushFront(&root);
+
+        assert(current != nullptr);
         do{
             if (*current != nullptr){
                 stack.pushFront(*current);
@@ -479,7 +482,7 @@ namespace avlTree{
         Node<Key,Data>* current = smallestLeaf;
         while (current != nullptr && steps > 0) {
             handle(current);
-            --steps;
+            //--steps;
             stepByStepInOrder(current->right, steps, handle);
             current = current->parent;
         }
@@ -673,18 +676,18 @@ namespace avlTree{
 
 
 
-    template <typename Key,typename Data>
-    std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree){
-            struct PrintData{
-                void operator()(Node<Key,Data>* node) const{
-                    std::cout << node->data << " " << balanceOf(node) << " " << node->subTreeHight << std::endl;
-                }
-            };
-            PrintData printData;
-            AvlTree<Key,Data>::inOrder(tree.root, printData);
+    // template <typename Key,typename Data>
+    // std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree){
+    //         struct PrintData{
+    //             void operator()(Node<Key,Data>* node) const{
+    //                 std::cout << node->data << " " << balanceOf(node) << " " << node->subTreeHight << std::endl;
+    //             }
+    //         };
+    //         PrintData printData;
+    //         AvlTree<Key,Data>::inOrder(tree.root, printData);
 
-            return os;
-    }
+    //         return os;
+    // }
 
 
 

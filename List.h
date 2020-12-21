@@ -120,7 +120,7 @@ namespace list{
         }
 
         T& operator*() {
-            if (*this==nullptr){
+            if (*this==nullptr || this->list->size == 0){
                 // intentional segmentation fault
                 return this->list->head->data;
             }
@@ -129,7 +129,7 @@ namespace list{
         }
         
         const T& operator*() const{
-            if (*this==nullptr  ){
+            if (*this==nullptr  || this->list->size == 0){
                 // intentional segmentation fault
                 return this->list->head->data;
             }
@@ -201,7 +201,7 @@ namespace list{
         
         
         const T& operator*() const{
-            if (*this==nullptr  ){
+            if (*this==nullptr || this->list->size == 0 ){
                 // intentional segmentation fault
                 return this->list->head->data;
             }

@@ -165,15 +165,16 @@ StatusType CoursesManager::GetMostViewedClasses(int numOfClasses, int* coursesOu
     function<void(avlTree::Node<int,AvlTree<int,List<Time>::iterator>>*)>  handleCourse = 
     [&out, &numOfClasses, &stepsLeft](avlTree::Node<int,AvlTree<int,List<Time>::iterator>>* courseNode){
         function<void(avlTree::Node<int,List<Time>::iterator>*)>  getView = 
-        [&out, &courseNode, &numOfClasses](avlTree::Node<int,List<Time>::iterator>* classNode){
+        [&out, &courseNode, &numOfClasses, &stepsLeft](avlTree::Node<int,List<Time>::iterator>* classNode){
             assert( out.i < numOfClasses );
             out.courses[out.i] = courseNode->key;
             out.classes[out.i++] = classNode->key;
+            --stepsLeft;
         };
 
         if (courseNode->data.getSize() < stepsLeft) {
             avlTree::AvlTree<int,list::List<Time>::iterator>::inOrder(courseNode->data.getRoot(), getView);
-            stepsLeft -= courseNode->data.getSize();
+            //stepsLeft -= courseNode->data.getSize();
         }
         else{
             AvlTree<int,List<Time>::iterator>::climbingInOrder(courseNode->data.getMinNode(), getView, stepsLeft);
