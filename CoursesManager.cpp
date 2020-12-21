@@ -83,7 +83,14 @@ StatusType CoursesManager::WatchClass(int courseID, int classID, int time){
 
     for (int i = 0; i < time; i++) {
         if (timeIterator == timeAxis.back()){
-            timeIterator = timeAxis.pushBack(Time(classTime->time + time,NO_CLASS));
+            if (timeIterator->time < classTime->time + time){
+                timeIterator = timeAxis.pushBack(Time(classTime->time + time,NO_CLASS));
+            }
+            else if (timeIterator->time == classTime->time + time) break;
+            else {            
+                timeIterator = timeAxis.getPrevious(timeIterator);
+                timeIterator = timeAxis.pushAfter(timeIterator,Time(classTime->time + time,NO_CLASS));
+            }
             break;
         }
         if (timeIterator->time < classTime->time + time){
