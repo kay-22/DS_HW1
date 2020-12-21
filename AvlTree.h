@@ -11,47 +11,84 @@
 static const int GO_RIGHT = -2;
 static const int GO_LEFT = 2;
 static const int  NO_HIGHT = -1;
-// static const char NO_SIDE = 0;
-// static const char RIGHT = 1;
-// static const char LEFT = 2;
+
+
 
 namespace avlTree{
 
     template <typename Key, typename Data>
     struct Node;
 
-    //static functions declerations:
+   /************************* static functions declerations *************************/
+    
+        /**
+        * finds a power of 2 that is closest to n.
+        * @return
+        * 	the requested 2Power
+        * @throws
+        * 	if n < 0
+        */
         static inline int closest2Power(int n);
 
+        /**
+        * finds the node with the near'st key.
+        * @return
+        * a pointer to the successor node
+        * @throws
+        * 	if deleted has-not 2 sons
+        */
         template  <typename Key,typename Data>
         static inline Node<Key,Data>* findSuccessor(Node<Key,Data>* deleted);
 
+        /**
+        * swaps the location in the tree for both v and u.
+        */
         template  <typename Key,typename Data>
         static inline void swapAvlNodes(Node<Key,Data>* v, Node<Key,Data>* u);
 
+        /**
+        * a regular generic swap function
+        */
         template  <typename T>
         static inline void swap(T& t1, T& t2);
 
+        /**
+        * prepare the tree for removing a node that is a leaf.
+        */
         template  <typename Key,typename Data>
         static inline void removeLeaf(Node<Key,Data>* deleted, Node<Key,Data>** deltedSrc);
 
+        /**
+        * prepare the tree for removing a node that has one son.
+        */
         template  <typename Key,typename Data>
         static inline void removeVertexWithOneSon(Node<Key,Data>* deleted, Node<Key,Data>** deltedSrc);
 
+    
+        /**
+        * calculates:  left_subTree_hight - right_subTree_hight 
+        *
+        * @return
+        * the blance-Factor of the nodeOnTrack
+        */
         template  <typename Key,typename Data>
         static inline int balanceOf(Node<Key,Data>* nodeOnTrack);
 
-        // template<typename Key,typename Data>
-        // struct deleteNodeFunc;
-        
 
-    //end declerations
+    /********************* static functions declerations - END *************************/
+    
 
 
-    /* 
-        * general description: an auxiliary struct to represent a vertex in an avl tree.
-        * left\right that is nullptr means subtree with hight=(-1)
-
+   /**
+    * Node - an auxiliary struct to represent a vertex in an avl tree.
+    * left\right that is nullptr means subtree with hight=(-1)
+    *----------------------------------------------------------------------------------------
+    * Key          - a valvue of the index-place in a sorted container
+    * Data         - The number of the classes that the Courses has in it
+    * parent       - the source node in the graph
+    * left         - the left sub-node in the graph
+    * right        - the right sub-node in the graph
+    * subTreeHight - the hight of the tree that ignores anyhing "above this-node" in the graph
     */
     template <typename Key, typename Data>
     struct Node {
@@ -75,81 +112,102 @@ namespace avlTree{
 
 
 
-
-    /* 
-        root that is nullptr means an empty tree
-
+    /**
+    * AVL-Tree dictionary
+    *
+    * Implements a graph-container type. the container is sorted by some Key.
+    * The type of the key and the value is generic.
+    * The avl-tree is acssessible trough eighter its minimal node or its root.
+    *
+    * The following functions are available:
+    *   AvlTree	- initializes a new empty avl-tree
+    *   find   	- finds the data releted to the given Key
+    *   insert 	- puts a given Data in the container in its place by the given Key
+    *   remove 	- removes the data releted to the given Key
     */
     template  <typename Key,typename Data>
     class AvlTree{
-    //to-do: check if need const in functions
-        public:
+    public:
+
+        // Dictionary - interface part: -------------------------------------------------------
+        //====================================================================================
         explicit AvlTree(Node<Key,Data>* root = nullptr);
         Data*    find(const Key& key);
         bool     insert(const Key& key, const Data& data);
         bool     remove(const Key& key);
         
         
-        // Non-interface part:
+        // Graph_type - interface part: ------------------------------------------------------
+        //====================================================================================
         int getSize() {return size;}
         Node<Key,Data>*const getMinNode() { return minNode; }
         Node<Key,Data>*const getRoot() { return root; }
+
+        friend std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree);
+        AvlTree(const AvlTree& other);
+        AvlTree& operator=(AvlTree other);
+
+
+        /* constructs returns a semi-full Tree in which all nodes are empty */
         static AvlTree semiFullTree(int nodesNum);
+        
         template <typename Functor>
-        static void postOrder(Node<Key,Data>* root, Functor& handle);// what happens when handle does not take Node type? <-------------------------------------------------------
+        static void postOrder(Node<Key,Data>* root, Functor& handle);
         template <typename Functor>
         static void preOrder(Node<Key,Data>* root,  Functor& handle);
         template <typename Functor>
         static void inOrder(Node<Key,Data>* root, Functor& handle);
+
+        /* starts the inOrder tour in the Tree at the node with the lowest key */
         template <typename Functor>
         static void climbingInOrder(Node<Key,Data>* smallestLeaf, Functor& handle, int& steps);
+
+        /* applies the inOrder tour in the Tree from the high'st key to the low'st key */
         template <typename Functor>
         static void reveresedPostOrder(Node<Key,Data>* root, Functor& handle);
+
+        /* a controlled inOrder tour in the Tree with limited number of steps */
         template <typename Functor>
         bool static stepByStepInOrder(Node<Key,Data>* root, int& steps, Functor& handle);
-        AvlTree(const AvlTree& other);
-        void copyAux(Node<Key,Data>* node, const Node<Key,Data>* const otherNode);
-        AvlTree& operator=(AvlTree other);
+
+
+
+        // NON-interface part: ---------------------------------------------------------
+        //==============================================================================
         void clear();
         ~AvlTree();
+        void copyAux(Node<Key,Data>* node, const Node<Key,Data>* const otherNode);
 
-        
         private:
         Node<Key,Data>* root;
         Node<Key,Data>* minNode;
         int size;
         
-
         /* returns the required node or null if failed. last <- last checked node */
         Node<Key,Data>* findNode(const Key& key, Node<Key,Data>*& last);
+
         /* inserts to the AvlTree like BinaryTreeInsert. assuming "not-exists". returns a poiner to the added node. */
         Node<Key,Data>* binaryInsert(const Key& key, const Data& data, Node<Key,Data>* last );
+
         /* removes from the AvlTree like BinaryTreeRemove. assuming "exists". returns a pointr to the lowest on track. */
         Node<Key,Data>* binaryRemove(Node<Key,Data>* deleted);
+
         /* assures that the hight is updated after removal/insertion */
         void assureHight(Node<Key,Data>* nodeOnTrack);
+
         /* assures that the balanceFactor of the node is correct by applying "role-over" if neccessary. */
         void assureBalance(Node<Key,Data>* nodeOnTrack);
-        /* performs a simple rotation to the left/right -
-        where pivot is the either the unbalanced vertex or the son of the unbalanced */
+
+        /*  performs a simple rotation to the left/right -
+            where pivot is the either the unbalanced vertex or the son of the unbalanced */
         void rotateLeft(Node<Key,Data>* pivotSon);
         void rotateRight(Node<Key,Data>* pivotSon);
+
         /* expands a single node tree to full tree */
         static void expandToFullTree(Node<Key,Data>* node, int hight);
+
         /* updates the pointer of the minNode to the most left leaf*/
         void updateMinNode();
-
-        friend std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree){
-            struct PrintData{
-                void operator()(Node<Key,Data>* node) const{
-                    std::cout << node->data << " " << balanceOf(node) << " " << node->subTreeHight << std::endl;
-                }
-            };
-            PrintData printData;
-            AvlTree<Key,Data>::inOrder(tree.root, printData);
-
-            return os;
-    }
 
     };
 
@@ -161,7 +219,6 @@ namespace avlTree{
 
 
 
-    //assuming: Key,Data has operators: < , > , =
     //last remains nullptr in case what we are looking for is the root itself
     template<typename Key,typename Data>
     Node<Key,Data>* AvlTree<Key,Data>::findNode(const Key& key, Node<Key,Data>*& last){
@@ -184,6 +241,7 @@ namespace avlTree{
 
 
     static inline int closest2Power(int n){
+        assert(n>=0);
         int twoPower = 1;
         int result = 0;
 
@@ -224,7 +282,7 @@ namespace avlTree{
 
 
 
-
+    
     template  <typename Key,typename Data>
     static inline void swapAvlNodes(Node<Key,Data>* v, Node<Key,Data>* u){
         swap<Key>(v->key,u->key);    
@@ -232,8 +290,7 @@ namespace avlTree{
     }
 
 
-    //assuming: Key,Data has copy Ctor and operator=
-    //assuming: Key,Data has operators: < , > , =
+ 
     template  <typename Key,typename Data>
     Node<Key,Data>* AvlTree<Key,Data>::binaryInsert(const Key& key, const Data& data, Node<Key,Data>* last ){
         Node<Key,Data>* newNode = new Node<Key,Data>(key,data,last);
@@ -314,6 +371,7 @@ namespace avlTree{
         
 
 
+
     template<typename Key, typename Data>
     void AvlTree<Key,Data>::rotateLeft(Node<Key,Data>* pivotSon){
 
@@ -355,7 +413,6 @@ namespace avlTree{
 
 
 
-
     template <typename Key,typename Data> 
     template <typename Functor>
     void AvlTree<Key,Data>::postOrder(Node<Key,Data>* root, Functor& handle){
@@ -376,6 +433,7 @@ namespace avlTree{
         handle(root);
         inOrder(root->right, handle);
     }
+
 
 
 
@@ -426,10 +484,6 @@ namespace avlTree{
             current = current->parent;
         }
     }
-
-
-
-
 
 
 
@@ -499,6 +553,7 @@ namespace avlTree{
 
 
 
+
     template  <typename Key,typename Data>
     void AvlTree<Key,Data>::assureHight(Node<Key,Data>* nodeOnTrack){
         if(nodeOnTrack == nullptr){
@@ -549,6 +604,7 @@ namespace avlTree{
 
 
 
+
     //returns null in case of failure
     template<typename Key,typename Data>
     Data* AvlTree<Key,Data>::find(const Key& key){
@@ -588,7 +644,6 @@ namespace avlTree{
 
 
 
-
     //return values: True for "sucssess", False for  "not exists".
     template<typename Key,typename Data>
     bool AvlTree<Key,Data>::remove(const Key& key){
@@ -613,6 +668,45 @@ namespace avlTree{
 
         updateMinNode();
         return true;
+    }
+
+
+
+
+    template <typename Key,typename Data>
+    std::ostream& operator<<(std::ostream& os, const AvlTree<Key,Data>& tree){
+            struct PrintData{
+                void operator()(Node<Key,Data>* node) const{
+                    std::cout << node->data << " " << balanceOf(node) << " " << node->subTreeHight << std::endl;
+                }
+            };
+            PrintData printData;
+            AvlTree<Key,Data>::inOrder(tree.root, printData);
+
+            return os;
+    }
+
+
+
+
+    template<typename Key,typename Data>
+    AvlTree<Key,Data>::AvlTree(const AvlTree& other) : root(nullptr), minNode(nullptr), size(other.size) { 
+        if (other.root == nullptr){
+            return; //this root and minNode are already null
+        }
+        root = new Node<Key,Data>(other.root->key, other.root->data, 
+                        nullptr, nullptr, nullptr, other.root->subTreeHight);
+        copyAux(root, other.root);
+    }
+
+
+
+
+    template<typename Key,typename Data>
+    AvlTree<Key,Data>& AvlTree<Key,Data>::operator=(AvlTree other){
+        swap<Node<Key,Data>*>(this->root, other.root);
+        swap<int>(size, other.size);
+        return *this;
     }
 
 
@@ -671,7 +765,6 @@ namespace avlTree{
         node->left = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
         node->right = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
 
-
         expandToFullTree(node->left, hight-1);
         expandToFullTree(node->right, hight-1);
     }
@@ -685,54 +778,13 @@ namespace avlTree{
             minNode = nullptr;
             return;
         }
-
         Node<Key,Data>* current = root;
-        while (current->left != nullptr) {
-            current = current->left;
-        }
-
+        while (current->left != nullptr) current = current->left;
         minNode = current;
     }
 
 
-
-
-
     
-    
-    template<typename Key,typename Data>
-    AvlTree<Key,Data>::AvlTree(const AvlTree& other) : root(nullptr), minNode(nullptr), size(other.size) { 
-        if (other.root == nullptr){
-            return; //this root and minNode are already null
-        }
-
-        root = new Node<Key,Data>(other.root->key, other.root->data, 
-                        nullptr, nullptr, nullptr, other.root->subTreeHight);
-        copyAux(root, other.root);
-        // assuming that clonedRoot was already cloned before the cloneVertex call
-        // struct CloneVertex{
-        //     Node<Key,Data>* currentVertex;
-        //     CloneVertex(Node<Key,Data>* clonedRoot) : currentVertex(clonedRoot){}//----------bug here: currentVertex always stays the same
-        //     void operator()(Node<Key,Data>* node){
-        //         if (node->left != nullptr) currentVertex->left = new Node<Key,Data>
-        //                                         (node->left->key,node->left->data, currentVertex, 
-        //                                         nullptr,nullptr, node->left->subTreeHight);
-
-        //         if (node->right != nullptr) currentVertex->right = new Node<Key,Data>
-        //                                         (node->right->key,node->right->data, currentVertex, 
-        //                                         nullptr,nullptr, node->right->subTreeHight);
-        //     }  
-        // };
-
-        // root = new Node<Key,Data>(other.root->key, other.root->data, 
-        //                 nullptr, nullptr, nullptr, other.root->subTreeHight);
-
-        // CloneVertex cloneVertex(root);
-        // preOrder(other.root, cloneVertex);
-    }
-
-
-
 
 
     
@@ -742,7 +794,6 @@ namespace avlTree{
             assert(node == nullptr);
             return;
         }
-
         if (otherNode->left != nullptr) node->left = new Node<Key,Data>
                                         (otherNode->left->key, otherNode->left->data, node, 
                                         nullptr,nullptr, otherNode->left->subTreeHight);
@@ -756,21 +807,7 @@ namespace avlTree{
 
 
 
-
-
-
-    template<typename Key,typename Data>
-    AvlTree<Key,Data>& AvlTree<Key,Data>::operator=(AvlTree other){
-        swap<Node<Key,Data>*>(this->root, other.root);
-        swap<int>(size, other.size);
-        return *this;
-    }
-
-
-
-
-    //template<typename Key,typename Data>
-    template<typename Key,typename Data>
+    template <typename Key,typename Data>
     void AvlTree<Key,Data>::clear(){
         
         struct DeleteNodeFunc{
@@ -782,6 +819,7 @@ namespace avlTree{
         postOrder(this->root, deleteNodeFunc);
         root = nullptr;
     }
+
 
 
 
