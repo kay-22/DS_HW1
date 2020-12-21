@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <iostream>
 #include <math.h>
-#include "Exceptions.h"
 #include "List.h"
 
 static const int GO_RIGHT = -2;
@@ -447,8 +446,6 @@ namespace avlTree{
 
         list::List<Node<Key,Data>*> stack;
         Node<Key,Data>** current = &root;
-
-        int counter = 0;
         //stack.pushFront(&root);
 
         assert(current != nullptr);
@@ -462,10 +459,9 @@ namespace avlTree{
                 handle(*topIt);
                 current = &((*topIt)->right);
                 stack.remove(topIt);
-                ++counter;  
             }
         }
-        while (stack.getSize() !=0 && counter < steps);
+        while ((stack.getSize()!=0 || *current != nullptr) && steps > 0);
 
         return true;
     }
@@ -700,6 +696,7 @@ namespace avlTree{
         root = new Node<Key,Data>(other.root->key, other.root->data, 
                         nullptr, nullptr, nullptr, other.root->subTreeHight);
         copyAux(root, other.root);
+        updateMinNode();
     }
 
 
@@ -724,6 +721,7 @@ namespace avlTree{
         result.updateMinNode();
         if (hight == NO_HIGHT) return result;
         result.insert(Key(),Data());
+        result.root->subTreeHight = hight;
         result.size = nodesNum;
 
         expandToFullTree(result.root, hight);
@@ -734,7 +732,6 @@ namespace avlTree{
             RemoveExtraLeaves(AvlTree<Key,Data>* resTree, int currentExtra) 
                 : resTree(resTree), currentExtra(currentExtra) {}
             void operator()(Node<Key,Data>* node){
-                resTree->assureHight(node);
                 if (currentExtra > 0 && node->subTreeHight == 0){
                     if (node->parent->left != nullptr){
 
@@ -746,14 +743,26 @@ namespace avlTree{
                         }
                     }
                     delete node;
+                    //resTree->assureHight(parent);
                     currentExtra--;
                 }
             }   
         };
 
+        struct AssureResTreeHight
+        {
+            AvlTree<Key,Data>* resTree;
+            AssureResTreeHight(AvlTree<Key,Data>* resTree) : resTree(resTree) {}
+            void operator()(Node<Key,Data>* node){
+                resTree->assureHight(node);
+            }
+        };
+
+        AssureResTreeHight assureResTreeHight(&result);
         int extraLeaves = (pow(2,hight+1) - 1) - nodesNum;
         RemoveExtraLeaves removeExtraLeaves(&result, extraLeaves);
         reveresedPostOrder(result.root, removeExtraLeaves);
+        postOrder(result.root, assureResTreeHight);
 
         result.updateMinNode();
         return result;
@@ -765,8 +774,8 @@ namespace avlTree{
     template <typename Key,typename Data>
     void AvlTree<Key,Data>::expandToFullTree(Node<Key,Data>* node, int hight){
         if (hight <= 0) return;
-        node->left = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
-        node->right = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight);
+        node->left = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight-1);
+        node->right = new Node<Key,Data>(Key(), Data(), node, nullptr, nullptr, hight-1);
 
         expandToFullTree(node->left, hight-1);
         expandToFullTree(node->right, hight-1);

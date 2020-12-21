@@ -1,6 +1,5 @@
 #include"library.h"
 #include"CoursesManager.h"
-#include "Exceptions.h"
 
 void* Init() 
 {
