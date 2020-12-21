@@ -60,7 +60,8 @@ struct Course{
     }
 
     Course& operator=(Course other){
-        avlTree::swap<list::List<Time>::iterator*>(times, other.times);    
+        avlTree::swap<list::List<Time>::iterator*>(times, other.times); 
+        avlTree::swap<int>(numOfClasses, other.numOfClasses);   
         return *this;
     }
 
