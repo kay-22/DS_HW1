@@ -116,7 +116,7 @@ namespace avlTree{
     * AVL-Tree dictionary
     *
     * Implements a graph-container type. the container is sorted by some Key.
-    * The type of the key and the value is generic.
+    * The type of the key and the value are generic.
     * The avl-tree is acssessible trough eighter its minimal node or its root.
     *
     * The following functions are available:
@@ -176,9 +176,9 @@ namespace avlTree{
         //==============================================================================
         void clear();
         ~AvlTree();
-        void copyAux(Node<Key,Data>* node, const Node<Key,Data>* const otherNode);
 
         private:
+        void copyAux(Node<Key,Data>* node, const Node<Key,Data>* const otherNode);
         Node<Key,Data>* root;
         Node<Key,Data>* minNode;
         int size;

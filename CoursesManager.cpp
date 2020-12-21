@@ -48,25 +48,6 @@ bool CoursesManager::RemoveCourse(int courseID){
 
     if (target == nullptr) return false;
 
-    // struct RemoveFromTimeAxis{
-    //     List<Time>*const timeAxis;
-    //     RemoveFromTimeAxis(List<Time>* timeAxis) : timeAxis(timeAxis) {}
-    //     void operator()(avlTree::Node<IntPair,List<Time>::iterator>* node){
-    //         assert(node->data != nullptr);
-    //         List<Time>::iterator currentTime  = node->data;
-    //         AvlTree<IntPair,List<Time>::iterator>& classes = currentTime->classes;
-    //         classes.remove(node->key);
-    //         --(currentTime->numOfClasses);
-    //         if (classes.getRoot() == nullptr && currentTime->time != 0) {
-    //             timeAxis->remove(currentTime);
-    //         }
-    //     }
-    // };
-    
-    // RemoveFromTimeAxis removeFromTimeAxis(&timeAxis);
-    // AvlTree<IntPair,List<Time>::iterator>::postOrder(target->classes.getRoot(), removeFromTimeAxis);
-    //target->classes.clear(); make sure it doesn't leak
-
     for (int i = 0; i < target->numOfClasses; ++i) {
         List<Time>::iterator& currentTime = target->times[i];
         AvlTree<int,AvlTree<int,List<Time>::iterator>>& currentCoursesInTime = currentTime->courses;
